@@ -1,0 +1,9 @@
+{
+	"name": "OlamideADF",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "d6bf4074-2f84-471e-b825-7c2c333cf715",
+		"tenantId": "b19995bf-a25c-437f-a1ac-fe080ec83d97"
+	}
+}
