@@ -1,0 +1,23 @@
+{
+	"name": "pipeline7",
+	"properties": {
+		"activities": [
+			{
+				"name": "Validation1",
+				"type": "Validation",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"timeout": "0.12:00:05",
+					"sleep": 0,
+					"minimumSize": 500
+				}
+			}
+		],
+		"annotations": []
+	}
+}
