@@ -1,0 +1,30 @@
+{
+	"name": "dssqllookup",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lssqldatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "SchemaName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "TableName",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "SalesLT",
+			"table": "ControlTable"
+		}
+	}
+}
