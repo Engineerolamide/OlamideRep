@@ -1,0 +1,123 @@
+{
+	"name": "dataflowjolly",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Exceljolly",
+						"type": "DatasetReference"
+					},
+					"name": "sourcejolly"
+				},
+				{
+					"linkedService": {
+						"referenceName": "lsazureadlshv",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceexchangeratejolly"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable4",
+						"type": "DatasetReference"
+					},
+					"name": "sink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filterOutMonthTotal"
+				},
+				{
+					"name": "filterCurrencyToUSD"
+				},
+				{
+					"name": "lookupExchangerate"
+				},
+				{
+					"name": "derivedColumnforTotalSales"
+				},
+				{
+					"name": "SelectTargetData"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Period as date,",
+				"          Product as string,",
+				"          {Unit Price} as double,",
+				"          Currency as string,",
+				"          {Units Sold} as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> sourcejolly",
+				"source(output(",
+				"          FromCurrency as string,",
+				"          ToCurrency as string,",
+				"          Date as date,",
+				"          ExchangeRate as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'excel',",
+				"     fileSystem: 'projectadf',",
+				"     folderPath: 'staging/Azure-Data-Factory-datasets.zip/Azure-Data-Factory-by-Example-Second-Edition-main/SampleData',",
+				"     fileName: 'ExchangeRates.xlsx',",
+				"     sheetName: 'Sheet1',",
+				"     firstRowAsHeader: true) ~> sourceexchangeratejolly",
+				"sourcejolly filter(Product!='Month Total') ~> filterOutMonthTotal",
+				"sourceexchangeratejolly filter(ToCurrency=='USD') ~> filterCurrencyToUSD",
+				"filterOutMonthTotal, filterCurrencyToUSD lookup(Period == Date",
+				"     && Currency == FromCurrency,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookupExchangerate",
+				"lookupExchangerate derive(SalesValueUSD = round({Unit Price}*{Units Sold}*ExchangeRate,2)) ~> derivedColumnforTotalSales",
+				"derivedColumnforTotalSales select(mapColumn(",
+				"          Product,",
+				"          {Unit Price},",
+				"          {Units Sold},",
+				"          Date,",
+				"          SalesValueUSD",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectTargetData",
+				"SelectTargetData sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          RowId as integer,",
+				"          Retailer as string,",
+				"          SalesMonth as date,",
+				"          Product as string,",
+				"          ManufacturerProductCode as string,",
+				"          SalesValueUSD as decimal(18,2),",
+				"          UnitsSold as integer,",
+				"          AuditId as string,",
+				"          Folderpath as string,",
+				"          UnitPrice as decimal(10,2)",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          SalesMonth = Date,",
+				"          Product,",
+				"          SalesValueUSD,",
+				"          UnitsSold = {Units Sold},",
+				"          UnitPrice = {Unit Price}",
+				"     )) ~> sink"
+			]
+		}
+	}
+}
