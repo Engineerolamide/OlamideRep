@@ -22,7 +22,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "AzureSqlTable4",
+						"referenceName": "dsasljolly",
 						"type": "DatasetReference"
 					},
 					"name": "sink"
@@ -91,16 +91,11 @@
 				"SelectTargetData sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
-				"          RowId as integer,",
-				"          Retailer as string,",
-				"          SalesMonth as date,",
 				"          Product as string,",
-				"          ManufacturerProductCode as string,",
-				"          SalesValueUSD as decimal(18,2),",
-				"          UnitsSold as integer,",
-				"          AuditId as string,",
-				"          Folderpath as string,",
-				"          UnitPrice as decimal(10,2)",
+				"          {Unit Price} as double,",
+				"          {Unit Sold} as integer,",
+				"          SalesMonth as date,",
+				"          SalesValueUSD as double",
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -114,8 +109,8 @@
 				"          SalesMonth = Date,",
 				"          Product,",
 				"          SalesValueUSD,",
-				"          UnitsSold = {Units Sold},",
-				"          UnitPrice = {Unit Price}",
+				"          {Unit Sold} = {Units Sold},",
+				"          {Unit Price}",
 				"     )) ~> sink"
 			]
 		}
