@@ -18,7 +18,8 @@
 						"referenceName": "AzureSynapseAnalyticsTable4",
 						"type": "DatasetReference"
 					},
-					"name": "Dessert4Allsink"
+					"name": "Dessert4Allsink",
+					"description": "Export data to dsSynapseAnalytics"
 				}
 			],
 			"transformations": [
@@ -40,8 +41,7 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet') ~> Dessert4All",
 				"Dessert4All aggregate(groupBy(Product),",
-				"     TotalRevenuePerProduct = round(sum(toFloat(SalesValueUSD) * toInteger(UnitsSold)), 2)\r",
-				") ~> Dessert4Allaggregate",
+				"     TotalRevenuePerProduct = round(sum(toFloat(SalesValueUSD) * toInteger(UnitsSold)), 2)) ~> Dessert4Allaggregate",
 				"Dessert4Allaggregate sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
