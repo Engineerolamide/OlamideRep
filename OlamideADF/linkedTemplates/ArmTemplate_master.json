@@ -1,0 +1,180 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "OlamideADF"
+		},
+		"LSSYNAPSE_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LSSYNAPSE'"
+		},
+		"lsadls2_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'lsadls2'"
+		},
+		"lsazureadlshv_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'lsazureadlshv'"
+		},
+		"lsazureblobhv_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'lsazureblobhv'"
+		},
+		"lssqldatabase_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'lssqldatabase'"
+		},
+		"LSSYNAPSE_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "synapseworkspace-olamide.sql.azuresynapse.net"
+		},
+		"LSSYNAPSE_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "olamidededicated"
+		},
+		"LSSYNAPSE_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "olamide"
+		},
+		"lsadls2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://azuredatalake2olamide.dfs.core.windows.net/"
+		},
+		"lsazureadlshv_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://storagedatalakeengineer.dfs.core.windows.net/"
+		},
+		"lssqldatabase_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sqlserverolamide.database.windows.net"
+		},
+		"lssqldatabase_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "DB-Olamide"
+		},
+		"lssqldatabase_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "olamide"
+		},
+		"saleslanding-bronze-trigger_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/5fd14507-37c9-4fcd-a6e8-2b36c7a73511/resourceGroups/RG-Olamide/providers/Microsoft.Storage/storageAccounts/storagedatalakeengineer"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "OlamideADF_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"LSSYNAPSE_password": {
+						"value": "[parameters('LSSYNAPSE_password')]"
+					},
+					"lsadls2_accountKey": {
+						"value": "[parameters('lsadls2_accountKey')]"
+					},
+					"lsazureadlshv_accountKey": {
+						"value": "[parameters('lsazureadlshv_accountKey')]"
+					},
+					"lsazureblobhv_connectionString": {
+						"value": "[parameters('lsazureblobhv_connectionString')]"
+					},
+					"lssqldatabase_password": {
+						"value": "[parameters('lssqldatabase_password')]"
+					},
+					"LSSYNAPSE_properties_typeProperties_server": {
+						"value": "[parameters('LSSYNAPSE_properties_typeProperties_server')]"
+					},
+					"LSSYNAPSE_properties_typeProperties_database": {
+						"value": "[parameters('LSSYNAPSE_properties_typeProperties_database')]"
+					},
+					"LSSYNAPSE_properties_typeProperties_userName": {
+						"value": "[parameters('LSSYNAPSE_properties_typeProperties_userName')]"
+					},
+					"lsadls2_properties_typeProperties_url": {
+						"value": "[parameters('lsadls2_properties_typeProperties_url')]"
+					},
+					"lsazureadlshv_properties_typeProperties_url": {
+						"value": "[parameters('lsazureadlshv_properties_typeProperties_url')]"
+					},
+					"lssqldatabase_properties_typeProperties_server": {
+						"value": "[parameters('lssqldatabase_properties_typeProperties_server')]"
+					},
+					"lssqldatabase_properties_typeProperties_database": {
+						"value": "[parameters('lssqldatabase_properties_typeProperties_database')]"
+					},
+					"lssqldatabase_properties_typeProperties_userName": {
+						"value": "[parameters('lssqldatabase_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_0')]"
+			]
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_2",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"saleslanding-bronze-trigger_properties_typeProperties_scope": {
+						"value": "[parameters('saleslanding-bronze-trigger_properties_typeProperties_scope')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_1')]"
+			]
+		}
+	]
+}

@@ -1,0 +1,57 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "OlamideADF"
+		},
+		"LSSYNAPSE_password": {
+			"value": ""
+		},
+		"lsadls2_accountKey": {
+			"value": ""
+		},
+		"lsazureadlshv_accountKey": {
+			"value": ""
+		},
+		"lsazureblobhv_connectionString": {
+			"value": ""
+		},
+		"lssqldatabase_password": {
+			"value": ""
+		},
+		"LSSYNAPSE_properties_typeProperties_server": {
+			"value": "synapseworkspace-olamide.sql.azuresynapse.net"
+		},
+		"LSSYNAPSE_properties_typeProperties_database": {
+			"value": "olamidededicated"
+		},
+		"LSSYNAPSE_properties_typeProperties_userName": {
+			"value": "olamide"
+		},
+		"lsadls2_properties_typeProperties_url": {
+			"value": "https://azuredatalake2olamide.dfs.core.windows.net/"
+		},
+		"lsazureadlshv_properties_typeProperties_url": {
+			"value": "https://storagedatalakeengineer.dfs.core.windows.net/"
+		},
+		"lssqldatabase_properties_typeProperties_server": {
+			"value": "sqlserverolamide.database.windows.net"
+		},
+		"lssqldatabase_properties_typeProperties_database": {
+			"value": "DB-Olamide"
+		},
+		"lssqldatabase_properties_typeProperties_userName": {
+			"value": "olamide"
+		},
+		"saleslanding-bronze-trigger_properties_typeProperties_scope": {
+			"value": "/subscriptions/5fd14507-37c9-4fcd-a6e8-2b36c7a73511/resourceGroups/RG-Olamide/providers/Microsoft.Storage/storageAccounts/storagedatalakeengineer"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
