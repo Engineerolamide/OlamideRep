@@ -1,0 +1,22 @@
+{
+	"name": "dsDessert4allsynapse",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "Product",
+				"type": "varchar"
+			},
+			{
+				"name": "TotalRevenuePerProduct",
+				"type": "bigint",
+				"precision": 19
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "SalesGold"
+		}
+	}
+}

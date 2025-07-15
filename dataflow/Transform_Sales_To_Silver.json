@@ -1,0 +1,56 @@
+{
+	"name": "Transform_Sales_To_Silver",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dessert4allparquet",
+						"type": "DatasetReference"
+					},
+					"name": "Dessert4All"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dsdessert4Allsink",
+						"type": "DatasetReference"
+					},
+					"name": "Dessert4AllSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Dessert4AllDerivedColumn"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SalesMonth as string,",
+				"          Retailer as string,",
+				"          Product as string,",
+				"          SalesValueUSD as string,",
+				"          UnitsSold as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> Dessert4All",
+				"Dessert4All derive(Revenue = toFloat(SalesValueUSD) * toInteger(UnitsSold)\r",
+				"\r",
+				") ~> Dessert4AllDerivedColumn",
+				"Dessert4AllDerivedColumn sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> Dessert4AllSink"
+			]
+		}
+	}
+}

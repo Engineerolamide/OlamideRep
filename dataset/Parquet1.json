@@ -1,0 +1,30 @@
+{
+	"name": "Parquet1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsazureadlshv",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "part-00000-93820a0a-8325-4405-8d29-b64c0617d214-c000.snappy.parquet",
+				"folderPath": "gold",
+				"fileSystem": "projectadf"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "Product",
+				"type": "UTF8"
+			},
+			{
+				"name": "TotalRevenuePerProduct",
+				"type": "DOUBLE"
+			}
+		]
+	}
+}

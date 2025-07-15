@@ -1,0 +1,45 @@
+{
+	"name": "Desserts4Allbronze",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsazureadlshv",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "bronze",
+				"fileSystem": "projectadf"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "Retailer",
+				"type": "UTF8"
+			},
+			{
+				"name": "SkuCode",
+				"type": "UTF8"
+			},
+			{
+				"name": "Product",
+				"type": "UTF8"
+			},
+			{
+				"name": "SalesMonth",
+				"type": "UTF8"
+			},
+			{
+				"name": "SalesValue",
+				"type": "UTF8"
+			},
+			{
+				"name": "UnitsSold",
+				"type": "UTF8"
+			}
+		]
+	}
+}

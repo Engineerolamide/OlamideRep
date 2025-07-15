@@ -37,6 +37,19 @@
 						}
 					},
 					"enableStaging": false,
+					"logSettings": {
+						"enableCopyActivityLog": true,
+						"copyActivityLogSettings": {
+							"logLevel": "Warning",
+							"enableReliableLogging": false
+						},
+						"logLocationSettings": {
+							"linkedServiceName": {
+								"referenceName": "lsazureadlshv",
+								"type": "LinkedServiceReference"
+							}
+						}
+					},
 					"translator": {
 						"type": "TabularTranslator",
 						"typeConversion": true,
