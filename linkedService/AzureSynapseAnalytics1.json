@@ -1,0 +1,14 @@
+{
+	"name": "AzureSynapseAnalytics1",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"server": "synapseworkspace-olamide.sql.azuresynapse.net",
+			"database": "Olamidededicated",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}
