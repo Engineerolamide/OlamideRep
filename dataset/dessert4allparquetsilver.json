@@ -1,0 +1,20 @@
+{
+	"name": "dessert4allparquetsilver",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsazureadlshv",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "silver",
+				"fileSystem": "projectadf"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
