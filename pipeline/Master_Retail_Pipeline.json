@@ -58,7 +58,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "pipeline18",
+						"referenceName": "Aggregate_Gold",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true

@@ -1,0 +1,63 @@
+{
+	"name": "dataflowAggregrate_copy1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dsdatasetsilver",
+						"type": "DatasetReference"
+					},
+					"name": "SourceSilverDessert4All"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText6",
+						"type": "DatasetReference"
+					},
+					"name": "SinkSynaseGold"
+				}
+			],
+			"transformations": [
+				{
+					"name": "aggregateDessert4All"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SalesMonth as string,",
+				"          Retailer as string,",
+				"          Product as string,",
+				"          SalesValueUSD as float,",
+				"          UnitsSold as integer,",
+				"          Revenue as float,",
+				"          CustomerID as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> SourceSilverDessert4All",
+				"SourceSilverDessert4All aggregate(groupBy(CustomerID,",
+				"          Product,",
+				"          Retailer,",
+				"          SalesMonth,",
+				"          UnitsSold,",
+				"          Revenue,",
+				"          SalesValueUSD),",
+				"     TotalRevenue = sum(Revenue)) ~> aggregateDessert4All",
+				"aggregateDessert4All sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     partitionBy('hash', 1)) ~> SinkSynaseGold"
+			]
+		}
+	}
+}
