@@ -1,0 +1,76 @@
+{
+	"name": "dataflowAggregrate",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dsdatasetsilver",
+						"type": "DatasetReference"
+					},
+					"name": "SourceSilverDessert4All"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dssynapsegold",
+						"type": "DatasetReference"
+					},
+					"name": "SinkSynaseGold"
+				}
+			],
+			"transformations": [
+				{
+					"name": "aggregateDessert4All"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SalesMonth as string,",
+				"          Retailer as string,",
+				"          Product as string,",
+				"          SalesValueUSD as float,",
+				"          UnitsSold as integer,",
+				"          Revenue as float,",
+				"          CustomerID as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> SourceSilverDessert4All",
+				"SourceSilverDessert4All aggregate(groupBy(CustomerID,",
+				"          Product,",
+				"          Retailer,",
+				"          SalesMonth,",
+				"          UnitsSold,",
+				"          Revenue,",
+				"          SalesValueUSD),",
+				"     TotalRevenue = sum(Revenue)) ~> aggregateDessert4All",
+				"aggregateDessert4All sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CustomerID as integer,",
+				"          Product as string,",
+				"          Retailer as string,",
+				"          SalesMonth as date,",
+				"          UnitSold as integer,",
+				"          Revenue as double,",
+				"          SalesValueUSD as double,",
+				"          TotalRevenue as double",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     staged: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> SinkSynaseGold"
+			]
+		}
+	}
+}

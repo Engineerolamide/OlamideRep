@@ -1,0 +1,50 @@
+{
+	"name": "dsdatasetsilver",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsazureadlshv",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "cleaned_parquet",
+				"folderPath": "silver",
+				"fileSystem": "projectadf"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "SalesMonth",
+				"type": "UTF8"
+			},
+			{
+				"name": "Retailer",
+				"type": "UTF8"
+			},
+			{
+				"name": "Product",
+				"type": "UTF8"
+			},
+			{
+				"name": "SalesValueUSD",
+				"type": "FLOAT"
+			},
+			{
+				"name": "UnitsSold",
+				"type": "INT32"
+			},
+			{
+				"name": "Revenue",
+				"type": "FLOAT"
+			},
+			{
+				"name": "CustomerID",
+				"type": "INT64"
+			}
+		]
+	}
+}
