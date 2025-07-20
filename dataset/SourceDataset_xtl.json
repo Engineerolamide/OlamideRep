@@ -1,0 +1,18 @@
+{
+	"name": "SourceDataset_xtl",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsazureadlshv",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "staging/Azure-Data-Factory-datasets.zip/Azure-Data-Factory-by-Example-Second-Edition-main/SampleData/Desserts4All",
+				"fileSystem": "projectadf"
+			}
+		}
+	}
+}
