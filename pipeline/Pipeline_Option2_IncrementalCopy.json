@@ -3,7 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy_ecz",
+				"name": "Option 2_Ingest_IncrementalCopy",
+				"description": "(IncrementalCopy)",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
