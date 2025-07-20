@@ -1,0 +1,17 @@
+{
+	"name": "DestinationDataset_xtl",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsazureadlshv",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "csv"
+			}
+		}
+	}
+}
