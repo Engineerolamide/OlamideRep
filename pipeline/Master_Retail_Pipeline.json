@@ -40,25 +40,6 @@
 					},
 					"waitOnCompletion": true
 				}
-			},
-			{
-				"name": "Run_Aggregate",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Run_Transform",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"waitOnCompletion": true
-				}
 			}
 		],
 		"annotations": []
