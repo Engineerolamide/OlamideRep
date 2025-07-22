@@ -1,5 +1,5 @@
 {
-	"name": "pipeline21",
+	"name": "pipeline22",
 	"properties": {
 		"activities": [
 			{
@@ -16,46 +16,38 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "ParquetSource",
+						"type": "DelimitedTextSource",
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
-							"type": "ParquetReadSettings"
+							"type": "DelimitedTextReadSettings"
 						}
 					},
 					"sink": {
-						"type": "DelimitedTextSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
-						},
-						"formatSettings": {
-							"type": "DelimitedTextWriteSettings",
-							"quoteAllText": true,
-							"fileExtension": ".txt"
-						}
+						"type": "SqlDWSink",
+						"allowCopyCommand": true
 					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "lsazureadlshv",
+							"type": "LinkedServiceReference"
+						},
+						"path": "companyproject/sink/"
 					}
 				},
 				"inputs": [
 					{
-						"referenceName": "Parquet10",
+						"referenceName": "DelimitedText13",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "DelimitedText11",
+						"referenceName": "AzureSynapseAnalyticsTable11",
 						"type": "DatasetReference"
 					}
 				]

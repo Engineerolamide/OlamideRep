@@ -1,0 +1,49 @@
+{
+	"name": "Parquet10",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsazureadlshv",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "part-00000-2b59b04f-dee7-4881-b891-08c0a6f62c09-c000.snappy.parquet",
+				"fileSystem": "realsilver"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "CustomerID",
+				"type": "INT64"
+			},
+			{
+				"name": "SalesMonth",
+				"type": "UTF8"
+			},
+			{
+				"name": "Product",
+				"type": "UTF8"
+			},
+			{
+				"name": "SalesValueUSD",
+				"type": "FLOAT"
+			},
+			{
+				"name": "Revenue",
+				"type": "FLOAT"
+			},
+			{
+				"name": "UnitsSold",
+				"type": "INT32"
+			},
+			{
+				"name": "TotalRevenue",
+				"type": "DOUBLE"
+			}
+		]
+	}
+}
