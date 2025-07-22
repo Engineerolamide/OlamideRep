@@ -324,12 +324,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"Trigger_ecz_properties_pipeline_parameters_windowStart": {
-						"value": "[parameters('Trigger_ecz_properties_pipeline_parameters_windowStart')]"
-					},
-					"Trigger_ecz_properties_pipeline_parameters_windowEnd": {
-						"value": "[parameters('Trigger_ecz_properties_pipeline_parameters_windowEnd')]"
 					}
 				}
 			},
@@ -350,6 +344,12 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"Trigger_ecz_properties_pipeline_parameters_windowStart": {
+						"value": "[parameters('Trigger_ecz_properties_pipeline_parameters_windowStart')]"
+					},
+					"Trigger_ecz_properties_pipeline_parameters_windowEnd": {
+						"value": "[parameters('Trigger_ecz_properties_pipeline_parameters_windowEnd')]"
 					},
 					"TriggerSalesGold_properties_typeProperties_scope": {
 						"value": "[parameters('TriggerSalesGold_properties_typeProperties_scope')]"
