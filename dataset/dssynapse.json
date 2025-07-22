@@ -1,10 +1,6 @@
 {
 	"name": "dssynapse",
 	"properties": {
-		"linkedServiceName": {
-			"referenceName": "lssynapsedessert4all",
-			"type": "LinkedServiceReference"
-		},
 		"annotations": [],
 		"type": "AzureSqlDWTable",
 		"schema": [],

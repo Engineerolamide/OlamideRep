@@ -1,10 +1,6 @@
 {
 	"name": "dssynapsegold",
 	"properties": {
-		"linkedServiceName": {
-			"referenceName": "lssynapsegold",
-			"type": "LinkedServiceReference"
-		},
 		"annotations": [],
 		"type": "AzureSqlDWTable",
 		"schema": [
