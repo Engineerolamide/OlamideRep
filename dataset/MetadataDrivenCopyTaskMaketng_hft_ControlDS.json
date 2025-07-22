@@ -1,0 +1,19 @@
+{
+	"name": "MetadataDrivenCopyTaskMaketng_hft_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lssqldatabase",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTaskMaketng_hft_20250722"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "Marktng",
+			"table": "MainControlTable_hft"
+		}
+	}
+}
