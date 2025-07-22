@@ -1,0 +1,19 @@
+{
+	"name": "MetadataDrivenCopyTaskMarketng_jri_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lssqldatabase",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTaskMarketng_jri_20250722"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "MainControlTable_jri"
+		}
+	}
+}
