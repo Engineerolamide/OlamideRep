@@ -27,6 +27,22 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'lssqldatabase'"
 		},
+		"lssynapsedessert4all_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'lssynapsedessert4all'"
+		},
+		"lssynapsegold_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'lssynapsegold'"
+		},
+		"AzureSynapseAnalytics1_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "synapseworkspace-olamide.sql.azuresynapse.net"
+		},
+		"AzureSynapseAnalytics1_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "Olamidededicated"
+		},
 		"LSSYNAPSE_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "synapseworkspace-olamide.sql.azuresynapse.net"
@@ -59,9 +75,41 @@
 			"type": "string",
 			"defaultValue": "olamide"
 		},
-		"saleslanding-bronze-trigger_properties_typeProperties_scope": {
+		"lssynapsedessert4all_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "synapseworkspace-olamide.sql.azuresynapse.net"
+		},
+		"lssynapsedessert4all_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "Olamidededicated"
+		},
+		"lssynapsedessert4all_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "Olamide"
+		},
+		"lssynapsegold_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "synapseworkspace-olamide.sql.azuresynapse.net"
+		},
+		"lssynapsegold_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "SalesGoldDedicated"
+		},
+		"lssynapsegold_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "Olamide"
+		},
+		"TriggerSalesGold_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/5fd14507-37c9-4fcd-a6e8-2b36c7a73511/resourceGroups/RG-Olamide/providers/Microsoft.Storage/storageAccounts/storagedatalakeengineer"
+		},
+		"Trigger_ecz_properties_pipeline_parameters_windowStart": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowStartTime"
+		},
+		"Trigger_ecz_properties_pipeline_parameters_windowEnd": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowEndTime"
 		},
 		"containerUri": {
 			"type": "string",
@@ -105,6 +153,18 @@
 					"lssqldatabase_password": {
 						"value": "[parameters('lssqldatabase_password')]"
 					},
+					"lssynapsedessert4all_password": {
+						"value": "[parameters('lssynapsedessert4all_password')]"
+					},
+					"lssynapsegold_password": {
+						"value": "[parameters('lssynapsegold_password')]"
+					},
+					"AzureSynapseAnalytics1_properties_typeProperties_server": {
+						"value": "[parameters('AzureSynapseAnalytics1_properties_typeProperties_server')]"
+					},
+					"AzureSynapseAnalytics1_properties_typeProperties_database": {
+						"value": "[parameters('AzureSynapseAnalytics1_properties_typeProperties_database')]"
+					},
 					"LSSYNAPSE_properties_typeProperties_server": {
 						"value": "[parameters('LSSYNAPSE_properties_typeProperties_server')]"
 					},
@@ -128,6 +188,24 @@
 					},
 					"lssqldatabase_properties_typeProperties_userName": {
 						"value": "[parameters('lssqldatabase_properties_typeProperties_userName')]"
+					},
+					"lssynapsedessert4all_properties_typeProperties_server": {
+						"value": "[parameters('lssynapsedessert4all_properties_typeProperties_server')]"
+					},
+					"lssynapsedessert4all_properties_typeProperties_database": {
+						"value": "[parameters('lssynapsedessert4all_properties_typeProperties_database')]"
+					},
+					"lssynapsedessert4all_properties_typeProperties_userName": {
+						"value": "[parameters('lssynapsedessert4all_properties_typeProperties_userName')]"
+					},
+					"lssynapsegold_properties_typeProperties_server": {
+						"value": "[parameters('lssynapsegold_properties_typeProperties_server')]"
+					},
+					"lssynapsegold_properties_typeProperties_database": {
+						"value": "[parameters('lssynapsegold_properties_typeProperties_database')]"
+					},
+					"lssynapsegold_properties_typeProperties_userName": {
+						"value": "[parameters('lssynapsegold_properties_typeProperties_userName')]"
 					}
 				}
 			},
@@ -166,14 +244,120 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"saleslanding-bronze-trigger_properties_typeProperties_scope": {
-						"value": "[parameters('saleslanding-bronze-trigger_properties_typeProperties_scope')]"
 					}
 				}
 			},
 			"dependsOn": [
 				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_1')]"
+			]
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_3",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_3.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_2')]"
+			]
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_4",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_4.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_3')]"
+			]
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_5",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_5.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_4')]"
+			]
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_6",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_6.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"Trigger_ecz_properties_pipeline_parameters_windowStart": {
+						"value": "[parameters('Trigger_ecz_properties_pipeline_parameters_windowStart')]"
+					},
+					"Trigger_ecz_properties_pipeline_parameters_windowEnd": {
+						"value": "[parameters('Trigger_ecz_properties_pipeline_parameters_windowEnd')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_5')]"
+			]
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_7",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_7.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"TriggerSalesGold_properties_typeProperties_scope": {
+						"value": "[parameters('TriggerSalesGold_properties_typeProperties_scope')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_6')]"
 			]
 		}
 	]
