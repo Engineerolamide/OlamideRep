@@ -37,12 +37,6 @@
 						"referenceName": "Parquet1",
 						"type": "DatasetReference"
 					}
-				],
-				"outputs": [
-					{
-						"referenceName": "AzureSynapseAnalyticsTable5",
-						"type": "DatasetReference"
-					}
 				]
 			}
 		],

@@ -14,10 +14,6 @@
 			],
 			"sinks": [
 				{
-					"dataset": {
-						"referenceName": "dssynapsegold",
-						"type": "DatasetReference"
-					},
 					"name": "SinkSynaseGold"
 				}
 			],
@@ -50,26 +46,10 @@
 				"     TotalRevenue = sum(Revenue)) ~> aggregateDessert4All",
 				"aggregateDessert4All sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     input(",
-				"          CustomerID as integer,",
-				"          Product as string,",
-				"          Retailer as string,",
-				"          SalesMonth as date,",
-				"          UnitSold as integer,",
-				"          Revenue as double,",
-				"          SalesValueUSD as double,",
-				"          TotalRevenue as double",
-				"     ),",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
-				"     format: 'table',",
-				"     staged: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 1,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> SinkSynaseGold"
+				"     format: 'table') ~> SinkSynaseGold"
 			]
 		}
 	}

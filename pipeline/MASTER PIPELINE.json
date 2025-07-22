@@ -57,10 +57,6 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"pipeline": {
-						"referenceName": "AggregateSilverToGold",
-						"type": "PipelineReference"
-					},
 					"waitOnCompletion": true
 				}
 			}
