@@ -8,9 +8,6 @@
 		"LSSYNAPSE_password": {
 			"value": ""
 		},
-		"lsadls2_accountKey": {
-			"value": ""
-		},
 		"lsazureadlshv_accountKey": {
 			"value": ""
 		},
@@ -20,18 +17,6 @@
 		"lssqldatabase_password": {
 			"value": ""
 		},
-		"lssynapsedessert4all_password": {
-			"value": ""
-		},
-		"lssynapsegold_password": {
-			"value": ""
-		},
-		"AzureSynapseAnalytics1_properties_typeProperties_server": {
-			"value": "synapseworkspace-olamide.sql.azuresynapse.net"
-		},
-		"AzureSynapseAnalytics1_properties_typeProperties_database": {
-			"value": "Olamidededicated"
-		},
 		"LSSYNAPSE_properties_typeProperties_server": {
 			"value": "synapseworkspace-olamide.sql.azuresynapse.net"
 		},
@@ -40,9 +25,6 @@
 		},
 		"LSSYNAPSE_properties_typeProperties_userName": {
 			"value": "olamide"
-		},
-		"lsadls2_properties_typeProperties_url": {
-			"value": "https://azuredatalake2olamide.dfs.core.windows.net/"
 		},
 		"lsazureadlshv_properties_typeProperties_url": {
 			"value": "https://storagedatalakeengineer.dfs.core.windows.net/"
@@ -55,33 +37,6 @@
 		},
 		"lssqldatabase_properties_typeProperties_userName": {
 			"value": "olamide"
-		},
-		"lssynapsedessert4all_properties_typeProperties_server": {
-			"value": "synapseworkspace-olamide.sql.azuresynapse.net"
-		},
-		"lssynapsedessert4all_properties_typeProperties_database": {
-			"value": "Olamidededicated"
-		},
-		"lssynapsedessert4all_properties_typeProperties_userName": {
-			"value": "Olamide"
-		},
-		"lssynapsegold_properties_typeProperties_server": {
-			"value": "synapseworkspace-olamide.sql.azuresynapse.net"
-		},
-		"lssynapsegold_properties_typeProperties_database": {
-			"value": "SalesGoldDedicated"
-		},
-		"lssynapsegold_properties_typeProperties_userName": {
-			"value": "Olamide"
-		},
-		"TriggerSalesGold_properties_typeProperties_scope": {
-			"value": "/subscriptions/5fd14507-37c9-4fcd-a6e8-2b36c7a73511/resourceGroups/RG-Olamide/providers/Microsoft.Storage/storageAccounts/storagedatalakeengineer"
-		},
-		"Trigger_ecz_properties_pipeline_parameters_windowStart": {
-			"value": "@trigger().outputs.windowStartTime"
-		},
-		"Trigger_ecz_properties_pipeline_parameters_windowEnd": {
-			"value": "@trigger().outputs.windowEndTime"
 		}
 	}
 }
