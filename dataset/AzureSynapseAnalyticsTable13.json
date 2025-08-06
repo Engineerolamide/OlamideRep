@@ -1,0 +1,16 @@
+{
+	"name": "AzureSynapseAnalyticsTable13",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LSSYNAPSE",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DimProduct_SCD2"
+		}
+	}
+}
