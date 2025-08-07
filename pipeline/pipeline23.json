@@ -1,0 +1,35 @@
+{
+	"name": "pipeline23",
+	"properties": {
+		"activities": [
+			{
+				"name": "dataflowLoverGirl",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflowLoverGirl",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"continuationSettings": {
+						"customizedCheckpointKey": "fc47b472-8f04-4a88-a90f-73d70caedc35"
+					}
+				}
+			}
+		],
+		"annotations": []
+	}
+}
