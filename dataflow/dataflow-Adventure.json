@@ -10,6 +10,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "Silver"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_saleGold",
+						"type": "DatasetReference"
+					},
+					"name": "SalesGold"
 				}
 			],
 			"sinks": [
@@ -19,6 +26,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "Gold"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_adventurefinal",
+						"type": "DatasetReference"
+					},
+					"name": "AdventureWorks"
 				}
 			],
 			"transformations": [
@@ -30,6 +44,12 @@
 				},
 				{
 					"name": "Aggregate"
+				},
+				{
+					"name": "Join"
+				},
+				{
+					"name": "AlterRow"
 				}
 			],
 			"scriptLines": [
@@ -65,6 +85,19 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> Silver",
+				"source(output(",
+				"          SalesOrderID as string,",
+				"          OrderDate as string,",
+				"          Year as integer,",
+				"          CustomerID as string,",
+				"          TotalDue as string,",
+				"          ModifiedDate as string,",
+				"          LoadTimeStamp as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> SalesGold",
 				"Silver derive(Year = year(toTimestamp(OrderDate)),",
 				"          LoadTimeStamp = currentTimestamp()) ~> DerivedColumn",
 				"Aggregate select(mapColumn(",
@@ -87,6 +120,12 @@
 				"          LoadTimeStamp,",
 				"          ModifiedDate),",
 				"     {Daily Sales Volume} = sum(TotalDue)) ~> Aggregate",
+				"Silver, SalesGold join(Silver@SalesOrderID == SalesGold@SalesOrderID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> Join",
+				"Join alterRow(insertIf(isNull(SalesGold@SalesOrderID))) ~> AlterRow",
 				"Select sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
@@ -96,7 +135,26 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> Gold"
+				"     errorHandlingOption: 'stopOnFirstError') ~> Gold",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SalesOrderID as string,",
+				"          OrderDate as string,",
+				"          Year as integer,",
+				"          CustomerID as string,",
+				"          TotalDue as string,",
+				"          ModifiedDate as string,",
+				"          LoadTimeStamp as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> AdventureWorks"
 			]
 		}
 	}
