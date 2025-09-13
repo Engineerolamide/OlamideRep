@@ -17,10 +17,7 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "dataflow-Adventure",
-						"type": "DataFlowReference",
-						"parameters": {
-							"startTime": "'2000-01-01T00:00:00Z'"
-						}
+						"type": "DataFlowReference"
 					},
 					"compute": {
 						"coreCount": 8,
@@ -30,12 +27,6 @@
 				}
 			}
 		],
-		"parameters": {
-			"startTime": {
-				"type": "string",
-				"defaultValue": "@trigger().startTime"
-			}
-		},
 		"annotations": []
 	}
 }
