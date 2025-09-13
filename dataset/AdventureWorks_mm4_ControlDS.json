@@ -1,0 +1,19 @@
+{
+	"name": "AdventureWorks_mm4_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lssqldatabase",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "AdventureWorks_mm4_20250912"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "MainControlTable_mm4"
+		}
+	}
+}
