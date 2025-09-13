@@ -30,6 +30,15 @@
 				},
 				{
 					"name": "Aggregate"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "join2"
+				},
+				{
+					"name": "join3"
 				}
 			],
 			"scriptLines": [
@@ -87,6 +96,18 @@
 				"          LoadTimeStamp,",
 				"          ModifiedDate),",
 				"     {Daily Sales Volume} = sum(TotalDue)) ~> Aggregate",
+				"join2 join(joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join3 join(joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				" join(joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join3",
 				"Select sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
