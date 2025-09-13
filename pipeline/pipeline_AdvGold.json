@@ -1,0 +1,41 @@
+{
+	"name": "pipeline_AdvGold",
+	"properties": {
+		"activities": [
+			{
+				"name": "dataflow-AdventureWork",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflow-AdventureWork",
+						"type": "DataFlowReference",
+						"parameters": {
+							"startTime": "'2000-01-01T00:00:00Z'"
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"parameters": {
+			"startTime": {
+				"type": "string",
+				"defaultValue": "@trigger().startTime"
+			}
+		},
+		"annotations": []
+	}
+}

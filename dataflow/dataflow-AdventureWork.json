@@ -1,0 +1,99 @@
+{
+	"name": "dataflow-AdventureWork",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dssilver",
+						"type": "DatasetReference"
+					},
+					"name": "Silver"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold",
+						"type": "DatasetReference"
+					},
+					"name": "Gold"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Filter"
+				},
+				{
+					"name": "DerivedColumn"
+				},
+				{
+					"name": "Select"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     startTime as string ('2000-01-01T00:00:00Z')",
+				"}",
+				"source(output(",
+				"          SalesOrderID as string,",
+				"          RevisionNumber as string,",
+				"          OrderDate as string,",
+				"          DueDate as string,",
+				"          ShipDate as string,",
+				"          Status as string,",
+				"          OnlineOrderFlag as string,",
+				"          SalesOrderNumber as string,",
+				"          PurchaseOrderNumber as string,",
+				"          AccountNumber as string,",
+				"          CustomerID as string,",
+				"          SalesPersonID as string,",
+				"          TerritoryID as string,",
+				"          BillToAddressID as string,",
+				"          ShipToAddressID as string,",
+				"          ShipMethodID as string,",
+				"          CreditCardID as string,",
+				"          CreditCardApprovalCode as string,",
+				"          CurrencyRateID as string,",
+				"          SubTotal as string,",
+				"          TaxAmt as string,",
+				"          Freight as string,",
+				"          TotalDue as string,",
+				"          Comment as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> Silver",
+				"Silver filter(toTimestamp(ModifiedDate) > toTimestamp($startTime)",
+				") ~> Filter",
+				"Filter derive(Year = year(toTimestamp(OrderDate)),",
+				"          LoadTimeStamp = currentTimestamp()) ~> DerivedColumn",
+				"DerivedColumn select(mapColumn(",
+				"          SalesOrderID,",
+				"          OrderDate,",
+				"          Year,",
+				"          CustomerID,",
+				"          TotalDue,",
+				"          ModifiedDate,",
+				"          LoadTimeStamp",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Select",
+				"Select sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> Gold"
+			]
+		}
+	}
+}
