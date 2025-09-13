@@ -23,6 +23,26 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'lssqldatabase'"
 		},
+		"HttpServer_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/"
+		},
+		"HttpServer1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://reqres.in/api"
+		},
+		"LSRestService_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://reqres.in/api/users"
+		},
+		"LSRestService1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api/users"
+		},
+		"LSRestService3_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/"
+		},
 		"LSSYNAPSE_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "synapseworkspace-olamide.sql.azuresynapse.net"
@@ -34,6 +54,30 @@
 		"LSSYNAPSE_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "olamide"
+		},
+		"RestService4_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api/"
+		},
+		"RestService5_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService6_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService7_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService8_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService9_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api/users?page=1"
 		},
 		"lsazureadlshv_properties_typeProperties_url": {
 			"type": "string",
@@ -90,6 +134,21 @@
 					"lssqldatabase_password": {
 						"value": "[parameters('lssqldatabase_password')]"
 					},
+					"HttpServer_properties_typeProperties_url": {
+						"value": "[parameters('HttpServer_properties_typeProperties_url')]"
+					},
+					"HttpServer1_properties_typeProperties_url": {
+						"value": "[parameters('HttpServer1_properties_typeProperties_url')]"
+					},
+					"LSRestService_properties_typeProperties_url": {
+						"value": "[parameters('LSRestService_properties_typeProperties_url')]"
+					},
+					"LSRestService1_properties_typeProperties_url": {
+						"value": "[parameters('LSRestService1_properties_typeProperties_url')]"
+					},
+					"LSRestService3_properties_typeProperties_url": {
+						"value": "[parameters('LSRestService3_properties_typeProperties_url')]"
+					},
 					"LSSYNAPSE_properties_typeProperties_server": {
 						"value": "[parameters('LSSYNAPSE_properties_typeProperties_server')]"
 					},
@@ -98,6 +157,24 @@
 					},
 					"LSSYNAPSE_properties_typeProperties_userName": {
 						"value": "[parameters('LSSYNAPSE_properties_typeProperties_userName')]"
+					},
+					"RestService4_properties_typeProperties_url": {
+						"value": "[parameters('RestService4_properties_typeProperties_url')]"
+					},
+					"RestService5_properties_typeProperties_url": {
+						"value": "[parameters('RestService5_properties_typeProperties_url')]"
+					},
+					"RestService6_properties_typeProperties_url": {
+						"value": "[parameters('RestService6_properties_typeProperties_url')]"
+					},
+					"RestService7_properties_typeProperties_url": {
+						"value": "[parameters('RestService7_properties_typeProperties_url')]"
+					},
+					"RestService8_properties_typeProperties_url": {
+						"value": "[parameters('RestService8_properties_typeProperties_url')]"
+					},
+					"RestService9_properties_typeProperties_url": {
+						"value": "[parameters('RestService9_properties_typeProperties_url')]"
 					},
 					"lsazureadlshv_properties_typeProperties_url": {
 						"value": "[parameters('lsazureadlshv_properties_typeProperties_url')]"
@@ -273,6 +350,46 @@
 			},
 			"dependsOn": [
 				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_7')]"
+			]
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_9",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_9.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_8')]"
+			]
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_10",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_10.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_9')]"
 			]
 		}
 	]

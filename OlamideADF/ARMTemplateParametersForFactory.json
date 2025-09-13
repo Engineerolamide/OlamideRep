@@ -17,6 +17,21 @@
 		"lssqldatabase_password": {
 			"value": ""
 		},
+		"HttpServer_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/"
+		},
+		"HttpServer1_properties_typeProperties_url": {
+			"value": "http://reqres.in/api"
+		},
+		"LSRestService_properties_typeProperties_url": {
+			"value": "http://reqres.in/api/users"
+		},
+		"LSRestService1_properties_typeProperties_url": {
+			"value": "https://reqres.in/api/users"
+		},
+		"LSRestService3_properties_typeProperties_url": {
+			"value": "https://reqres.in/"
+		},
 		"LSSYNAPSE_properties_typeProperties_server": {
 			"value": "synapseworkspace-olamide.sql.azuresynapse.net"
 		},
@@ -25,6 +40,24 @@
 		},
 		"LSSYNAPSE_properties_typeProperties_userName": {
 			"value": "olamide"
+		},
+		"RestService4_properties_typeProperties_url": {
+			"value": "https://reqres.in/api/"
+		},
+		"RestService5_properties_typeProperties_url": {
+			"value": "https://reqres.in/api"
+		},
+		"RestService6_properties_typeProperties_url": {
+			"value": "https://reqres.in/api"
+		},
+		"RestService7_properties_typeProperties_url": {
+			"value": "https://reqres.in/api"
+		},
+		"RestService8_properties_typeProperties_url": {
+			"value": "https://reqres.in/api"
+		},
+		"RestService9_properties_typeProperties_url": {
+			"value": "https://reqres.in/api/users?page=1"
 		},
 		"lsazureadlshv_properties_typeProperties_url": {
 			"value": "https://storagedatalakeengineer.dfs.core.windows.net/"

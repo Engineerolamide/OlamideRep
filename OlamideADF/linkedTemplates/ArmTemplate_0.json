@@ -23,6 +23,26 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'lssqldatabase'"
 		},
+		"HttpServer_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/"
+		},
+		"HttpServer1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://reqres.in/api"
+		},
+		"LSRestService_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://reqres.in/api/users"
+		},
+		"LSRestService1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api/users"
+		},
+		"LSRestService3_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/"
+		},
 		"LSSYNAPSE_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "synapseworkspace-olamide.sql.azuresynapse.net"
@@ -34,6 +54,30 @@
 		"LSSYNAPSE_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "olamide"
+		},
+		"RestService4_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api/"
+		},
+		"RestService5_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService6_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService7_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService8_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService9_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api/users?page=1"
 		},
 		"lsazureadlshv_properties_typeProperties_url": {
 			"type": "string",
@@ -57,6 +101,81 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/HttpServer')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('HttpServer_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/HttpServer1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('HttpServer1_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": false,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LSRestService')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('LSRestService_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LSRestService1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('LSRestService1_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": false,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LSRestService3')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('LSRestService3_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LSSYNAPSE')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -74,6 +193,96 @@
 						"type": "SecureString",
 						"value": "[parameters('LSSYNAPSE_password')]"
 					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService4')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService4_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService5')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService5_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService6')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService6_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService7')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService7_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService8')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService8_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService9')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService9_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
 				}
 			},
 			"dependsOn": []
@@ -133,38 +342,83 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlTable1')]",
+			"name": "[concat(parameters('factoryName'), '/Trigger_8bi')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Minute",
+					"interval": 5,
+					"startTime": "2000-01-01T12:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWork_lbj_ControlDS')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "lssqldatabase",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "AdventureWork_lbj_20250913"
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [],
-				"typeProperties": {}
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "MainControlTable_lbj"
+				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlTable3')]",
+			"name": "[concat(parameters('factoryName'), '/AdventureWork_lbj_DestinationDS')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "lssqldatabase",
 					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_schema": {
+						"type": "String"
+					},
+					"cw_table": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWork_lbj_20250913"
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [],
 				"typeProperties": {
-					"schema": "SalesLT",
-					"table": "Address"
+					"schema": {
+						"value": "@dataset().cw_schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().cw_table",
+						"type": "Expression"
+					}
 				}
 			},
 			"dependsOn": [
@@ -172,457 +426,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlTable4')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lssqldatabase",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "RowId",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "Retailer",
-						"type": "nvarchar"
-					},
-					{
-						"name": "SalesMonth",
-						"type": "date"
-					},
-					{
-						"name": "Product",
-						"type": "nvarchar"
-					},
-					{
-						"name": "ManufacturerProductCode",
-						"type": "nvarchar"
-					},
-					{
-						"name": "SalesValueUSD",
-						"type": "decimal",
-						"precision": 18,
-						"scale": 2
-					},
-					{
-						"name": "UnitsSold",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "AuditId",
-						"type": "uniqueidentifier"
-					},
-					{
-						"name": "Folderpath",
-						"type": "nvarchar"
-					},
-					{
-						"name": "UnitPrice",
-						"type": "decimal",
-						"precision": 10,
-						"scale": 2
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "Sales_LOAD"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlTable5')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lssqldatabase",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlTable6')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lssqldatabase",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "ProductID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "ProductName",
-						"type": "varchar"
-					},
-					{
-						"name": "Price",
-						"type": "decimal",
-						"precision": 10,
-						"scale": 2
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "LoverGirl"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable10')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LSSYNAPSE",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [
-					{
-						"name": "CustomerID",
-						"type": "bigint",
-						"precision": 19
-					},
-					{
-						"name": "SalesMonth",
-						"type": "date"
-					},
-					{
-						"name": "Product",
-						"type": "varchar"
-					},
-					{
-						"name": "SalesValueUSD",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "Revenue",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "UnitsSold",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "TotalRevenue",
-						"type": "float",
-						"precision": 15
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "SalesGold"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LSSYNAPSE')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable11')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LSSYNAPSE",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [
-					{
-						"name": "CustomerID",
-						"type": "bigint",
-						"precision": 19
-					},
-					{
-						"name": "SalesMonth",
-						"type": "date"
-					},
-					{
-						"name": "Product",
-						"type": "varchar"
-					},
-					{
-						"name": "SalesValueUSD",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "Revenue",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "UnitsSold",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "TotalRevenue",
-						"type": "float",
-						"precision": 15
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "SalesGold"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LSSYNAPSE')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable12')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LSSYNAPSE",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [
-					{
-						"name": "CustomerID",
-						"type": "bigint",
-						"precision": 19
-					},
-					{
-						"name": "SalesMonth",
-						"type": "date"
-					},
-					{
-						"name": "Product",
-						"type": "varchar"
-					},
-					{
-						"name": "SalesValueUSD",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "Revenue",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "UnitsSold",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "TotalRevenue",
-						"type": "float",
-						"precision": 15
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "SalesGold"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LSSYNAPSE')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable13')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LSSYNAPSE",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "DimProduct_SCD2"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LSSYNAPSE')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable2')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LSSYNAPSE",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [
-					{
-						"name": "Product",
-						"type": "varchar"
-					},
-					{
-						"name": "TotalRevenuePerProduct",
-						"type": "bigint",
-						"precision": 19
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "SalesGold"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LSSYNAPSE')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable8')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LSSYNAPSE",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [
-					{
-						"name": "CustomerID",
-						"type": "bigint",
-						"precision": 19
-					},
-					{
-						"name": "SalesMonth",
-						"type": "date"
-					},
-					{
-						"name": "Product",
-						"type": "varchar"
-					},
-					{
-						"name": "SalesValueUSD",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "Revenue",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "UnitsSold",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "TotalRevenue",
-						"type": "float",
-						"precision": 15
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "SalesGold"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LSSYNAPSE')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable9')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LSSYNAPSE",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [
-					{
-						"name": "CustomerID",
-						"type": "bigint",
-						"precision": 19
-					},
-					{
-						"name": "SalesMonth",
-						"type": "date"
-					},
-					{
-						"name": "Product",
-						"type": "varchar"
-					},
-					{
-						"name": "SalesValueUSD",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "Revenue",
-						"type": "float",
-						"precision": 15
-					},
-					{
-						"name": "UnitsSold",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "TotalRevenue",
-						"type": "float",
-						"precision": 15
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "SalesGold"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LSSYNAPSE')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DSSELECTAVRO')]",
+			"name": "[concat(parameters('factoryName'), '/AdventureWork_lbj_SourceDS')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -630,89 +434,66 @@
 					"referenceName": "lsazureadlshv",
 					"type": "LinkedServiceReference"
 				},
-				"annotations": [],
-				"type": "Avro",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileSystem": "data"
+				"parameters": {
+					"cw_columnDelimiter": {
+						"type": "String"
+					},
+					"cw_escapeChar": {
+						"type": "String"
+					},
+					"cw_quoteChar": {
+						"type": "String"
+					},
+					"cw_firstRowAsHeader": {
+						"type": "Bool"
+					},
+					"cw_fileName": {
+						"type": "String"
+					},
+					"cw_folderPath": {
+						"type": "Object"
+					},
+					"cw_fileSystem": {
+						"type": "String"
 					}
 				},
-				"schema": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
+				"folder": {
+					"name": "AdventureWork_lbj_20250913"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "sales (1).csv",
-						"fileSystem": "data"
+						"fileName": {
+							"value": "@dataset().cw_fileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().cw_folderPath",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().cw_fileSystem",
+							"type": "Expression"
+						}
 					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "SaleID",
-						"type": "String"
+					"columnDelimiter": {
+						"value": "@dataset().cw_columnDelimiter",
+						"type": "Expression"
 					},
-					{
-						"name": "ProductID",
-						"type": "String"
+					"escapeChar": {
+						"value": "@dataset().cw_escapeChar",
+						"type": "Expression"
 					},
-					{
-						"name": "CustomerID",
-						"type": "String"
+					"firstRowAsHeader": {
+						"value": "@dataset().cw_firstRowAsHeader",
+						"type": "Expression"
 					},
-					{
-						"name": "Quantity",
-						"type": "String"
-					},
-					{
-						"name": "SaleDate",
-						"type": "String"
+					"quoteChar": {
+						"value": "@dataset().cw_quoteChar",
+						"type": "Expression"
 					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DelimitedText10')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileSystem": "realsilver"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
 				},
 				"schema": []
 			},
@@ -721,30 +502,27 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/DelimitedText11')]",
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_8bi_ControlDS')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
+					"referenceName": "lssqldatabase",
 					"type": "LinkedServiceReference"
 				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileSystem": "synapse1"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
+				"folder": {
+					"name": "AdventureWorks_8bi_20250912"
 				},
-				"schema": []
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "Sales",
+					"table": "MainControlTable"
+				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
 			]
 		}
 	]

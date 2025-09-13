@@ -23,6 +23,26 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'lssqldatabase'"
 		},
+		"HttpServer_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/"
+		},
+		"HttpServer1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://reqres.in/api"
+		},
+		"LSRestService_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://reqres.in/api/users"
+		},
+		"LSRestService1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api/users"
+		},
+		"LSRestService3_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/"
+		},
 		"LSSYNAPSE_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "synapseworkspace-olamide.sql.azuresynapse.net"
@@ -34,6 +54,30 @@
 		"LSSYNAPSE_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "olamide"
+		},
+		"RestService4_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api/"
+		},
+		"RestService5_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService6_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService7_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService8_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api"
+		},
+		"RestService9_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://reqres.in/api/users?page=1"
 		},
 		"lsazureadlshv_properties_typeProperties_url": {
 			"type": "string",
@@ -56,6 +100,1168 @@
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWork_lbj_BottomLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will copy objects from one group. The objects belonging to this group will be copied parallelly.",
+				"activities": [
+					{
+						"name": "ListObjectsFromOneGroup",
+						"description": "List objects from one group and iterate each of them to downstream activities",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.ObjectsPerGroupToCopy",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "RouteJobsBasedOnLoadingBehavior",
+									"description": "Check the loading behavior for each object if it requires full load or incremental load. If it is Default or FullLoad case, do full load. If it is DeltaLoad case, do incremental load.",
+									"type": "Switch",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@json(item().DataLoadingBehaviorSettings).dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "FullLoad",
+												"activities": [
+													{
+														"name": "FullLoadOneObject",
+														"description": "Take a full snapshot on this object and copy it to the destination",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).fileSystem}/@{json(item().SourceObjectSettings).folderPath}/@{json(item().SourceObjectSettings).fileName}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "DelimitedTextSource",
+																"storeSettings": {
+																	"type": "AzureBlobFSReadSettings",
+																	"recursive": {
+																		"value": "@json(item().CopySourceSettings).recursive",
+																		"type": "Expression"
+																	},
+																	"modifiedDatetimeStart": {
+																		"value": "@pipeline().parameters.windowStart",
+																		"type": "Expression"
+																	},
+																	"modifiedDatetimeEnd": {
+																		"value": "@pipeline().parameters.windowEnd",
+																		"type": "Expression"
+																	},
+																	"enablePartitionDiscovery": {
+																		"value": "@json(item().CopySourceSettings).enablePartitionDiscovery",
+																		"type": "Expression"
+																	}
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextReadSettings",
+																	"skipLineCount": {
+																		"value": "@json(item().CopySourceSettings).skipLineCount",
+																		"type": "Expression"
+																	}
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "AdventureWork_lbj_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_columnDelimiter": {
+																		"value": "@json(item().SourceObjectSettings).columnDelimiter",
+																		"type": "Expression"
+																	},
+																	"cw_escapeChar": {
+																		"value": "@json(item().SourceObjectSettings).escapeChar",
+																		"type": "Expression"
+																	},
+																	"cw_quoteChar": {
+																		"value": "@json(item().SourceObjectSettings).quoteChar",
+																		"type": "Expression"
+																	},
+																	"cw_firstRowAsHeader": {
+																		"value": "@json(item().SourceObjectSettings).firstRowAsHeader",
+																		"type": "Expression"
+																	},
+																	"cw_fileName": {
+																		"value": "@json(item().SourceObjectSettings).fileName",
+																		"type": "Expression"
+																	},
+																	"cw_folderPath": {
+																		"value": "@json(item().SourceObjectSettings).folderPath",
+																		"type": "Expression"
+																	},
+																	"cw_fileSystem": {
+																		"value": "@json(item().SourceObjectSettings).fileSystem",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "AdventureWork_lbj_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													}
+												]
+											},
+											{
+												"value": "DeltaLoad",
+												"activities": [
+													{
+														"name": "DeltaLoadOneObject",
+														"description": "Copy the changed data only from last time via comparing the last modified date or time partitioned folder/file names to identify changes.",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).fileSystem}/@{json(item().SourceObjectSettings).folderPath}/@{json(item().SourceObjectSettings).fileName}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "DelimitedTextSource",
+																"storeSettings": {
+																	"type": "AzureBlobFSReadSettings",
+																	"recursive": {
+																		"value": "@json(item().CopySourceSettings).recursive",
+																		"type": "Expression"
+																	},
+																	"modifiedDatetimeStart": {
+																		"value": "@pipeline().parameters.windowStart",
+																		"type": "Expression"
+																	},
+																	"modifiedDatetimeEnd": {
+																		"value": "@pipeline().parameters.windowEnd",
+																		"type": "Expression"
+																	},
+																	"enablePartitionDiscovery": {
+																		"value": "@json(item().CopySourceSettings).enablePartitionDiscovery",
+																		"type": "Expression"
+																	}
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextReadSettings",
+																	"skipLineCount": {
+																		"value": "@json(item().CopySourceSettings).skipLineCount",
+																		"type": "Expression"
+																	}
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "AdventureWork_lbj_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_columnDelimiter": {
+																		"value": "@json(item().SourceObjectSettings).columnDelimiter",
+																		"type": "Expression"
+																	},
+																	"cw_escapeChar": {
+																		"value": "@json(item().SourceObjectSettings).escapeChar",
+																		"type": "Expression"
+																	},
+																	"cw_quoteChar": {
+																		"value": "@json(item().SourceObjectSettings).quoteChar",
+																		"type": "Expression"
+																	},
+																	"cw_firstRowAsHeader": {
+																		"value": "@json(item().SourceObjectSettings).firstRowAsHeader",
+																		"type": "Expression"
+																	},
+																	"cw_fileName": {
+																		"value": "@json(item().SourceObjectSettings).fileName",
+																		"type": "Expression"
+																	},
+																	"cw_folderPath": {
+																		"value": "@json(item().SourceObjectSettings).folderPath",
+																		"type": "Expression"
+																	},
+																	"cw_fileSystem": {
+																		"value": "@json(item().SourceObjectSettings).fileSystem",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "AdventureWork_lbj_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "DefaultFullLoadOneObject",
+												"description": "Take a full snapshot on this object and copy it to the destination",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "@{json(item().SourceObjectSettings).fileSystem}/@{json(item().SourceObjectSettings).folderPath}/@{json(item().SourceObjectSettings).fileName}"
+													},
+													{
+														"name": "Destination",
+														"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+													}
+												],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobFSReadSettings",
+															"recursive": {
+																"value": "@json(item().CopySourceSettings).recursive",
+																"type": "Expression"
+															},
+															"modifiedDatetimeStart": {
+																"value": "@pipeline().parameters.windowStart",
+																"type": "Expression"
+															},
+															"modifiedDatetimeEnd": {
+																"value": "@pipeline().parameters.windowEnd",
+																"type": "Expression"
+															},
+															"enablePartitionDiscovery": {
+																"value": "@json(item().CopySourceSettings).enablePartitionDiscovery",
+																"type": "Expression"
+															}
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings",
+															"skipLineCount": {
+																"value": "@json(item().CopySourceSettings).skipLineCount",
+																"type": "Expression"
+															}
+														}
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"preCopyScript": {
+															"value": "@json(item().CopySinkSettings).preCopyScript",
+															"type": "Expression"
+														},
+														"tableOption": {
+															"value": "@json(item().CopySinkSettings).tableOption",
+															"type": "Expression"
+														}
+													},
+													"enableStaging": false,
+													"validateDataConsistency": false,
+													"translator": {
+														"value": "@json(item().CopyActivitySettings).translator",
+														"type": "Expression"
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "AdventureWork_lbj_SourceDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_columnDelimiter": {
+																"value": "@json(item().SourceObjectSettings).columnDelimiter",
+																"type": "Expression"
+															},
+															"cw_escapeChar": {
+																"value": "@json(item().SourceObjectSettings).escapeChar",
+																"type": "Expression"
+															},
+															"cw_quoteChar": {
+																"value": "@json(item().SourceObjectSettings).quoteChar",
+																"type": "Expression"
+															},
+															"cw_firstRowAsHeader": {
+																"value": "@json(item().SourceObjectSettings).firstRowAsHeader",
+																"type": "Expression"
+															},
+															"cw_fileName": {
+																"value": "@json(item().SourceObjectSettings).fileName",
+																"type": "Expression"
+															},
+															"cw_folderPath": {
+																"value": "@json(item().SourceObjectSettings).folderPath",
+																"type": "Expression"
+															},
+															"cw_fileSystem": {
+																"value": "@json(item().SourceObjectSettings).fileSystem",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "AdventureWork_lbj_DestinationDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SinkObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SinkObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"ObjectsPerGroupToCopy": {
+						"type": "Array"
+					},
+					"windowStart": {
+						"type": "String"
+					},
+					"windowEnd": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWork_lbj_20250913"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AdventureWork_lbj_SourceDS')]",
+				"[concat(variables('factoryId'), '/datasets/AdventureWork_lbj_DestinationDS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWork_lbj_MiddleLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will copy one batch of objects. The objects belonging to this batch will be copied parallelly.",
+				"activities": [
+					{
+						"name": "DivideOneBatchIntoMultipleGroups",
+						"description": "Divide objects from single batch into multiple sub parallel groups to avoid reaching the output limit of lookup activity.",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@range(0, add(div(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity),\n                    if(equals(mod(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity), 0), 0, 1)))",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"batchCount": 50,
+							"activities": [
+								{
+									"name": "GetObjectsPerGroupToCopy",
+									"description": "Get objects (tables etc.) from control table required to be copied in this group. The order of objects to be copied following the TaskId in control table (ORDER BY [TaskId] DESC).",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "WITH OrderedControlTable AS (\n                             SELECT *, ROW_NUMBER() OVER (ORDER BY [TaskId], [Id] DESC) AS RowNumber\n                             FROM @{pipeline().parameters.MainControlTableName}\n                             where TopLevelPipelineName = '@{pipeline().parameters.TopLevelPipelineName}'\n                             and TriggerName like '%@{pipeline().parameters.TriggerName}%' and CopyEnabled = 1)\n                             SELECT * FROM OrderedControlTable WHERE RowNumber BETWEEN @{add(mul(int(item()),pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity),\n                             add(mul(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, pipeline().parameters.CurrentSequentialNumberOfBatch), 1))}\n                             AND @{min(add(mul(int(item()), pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity), add(mul(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, pipeline().parameters.CurrentSequentialNumberOfBatch),\n                             pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity)),\n                            mul(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, add(pipeline().parameters.CurrentSequentialNumberOfBatch,1)), pipeline().parameters.SumOfObjectsToCopy)}",
+												"type": "Expression"
+											},
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "AdventureWork_lbj_ControlDS",
+											"type": "DatasetReference",
+											"parameters": {}
+										},
+										"firstRowOnly": false
+									}
+								},
+								{
+									"name": "CopyObjectsInOneGroup",
+									"description": "Execute another pipeline to copy objects from one group. The objects belonging to this group will be copied parallelly.",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "GetObjectsPerGroupToCopy",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "AdventureWork_lbj_BottomLevel",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"ObjectsPerGroupToCopy": {
+												"value": "@activity('GetObjectsPerGroupToCopy').output.value",
+												"type": "Expression"
+											},
+											"windowStart": {
+												"value": "@pipeline().parameters.windowStart",
+												"type": "Expression"
+											},
+											"windowEnd": {
+												"value": "@pipeline().parameters.windowEnd",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"MaxNumberOfObjectsReturnedFromLookupActivity": {
+						"type": "Int"
+					},
+					"TopLevelPipelineName": {
+						"type": "String"
+					},
+					"TriggerName": {
+						"type": "String"
+					},
+					"CurrentSequentialNumberOfBatch": {
+						"type": "Int"
+					},
+					"SumOfObjectsToCopy": {
+						"type": "Int"
+					},
+					"SumOfObjectsToCopyForCurrentBatch": {
+						"type": "Int"
+					},
+					"MainControlTableName": {
+						"type": "String"
+					},
+					"windowStart": {
+						"type": "String"
+					},
+					"windowEnd": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWork_lbj_20250913"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AdventureWork_lbj_ControlDS')]",
+				"[concat(variables('factoryId'), '/pipelines/AdventureWork_lbj_BottomLevel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_mm4_BottomLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will copy objects from one group. The objects belonging to this group will be copied parallelly.",
+				"activities": [
+					{
+						"name": "ListObjectsFromOneGroup",
+						"description": "List objects from one group and iterate each of them to downstream activities",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.ObjectsPerGroupToCopy",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "RouteJobsBasedOnLoadingBehavior",
+									"description": "Check the loading behavior for each object if it requires full load or incremental load. If it is Default or FullLoad case, do full load. If it is DeltaLoad case, do incremental load.",
+									"type": "Switch",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@json(item().DataLoadingBehaviorSettings).dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "FullLoad",
+												"activities": [
+													{
+														"name": "FullLoadOneObject",
+														"description": "Take a full snapshot on this object and copy it to the destination",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).relativeUrl}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).fileSystem}/@{json(item().SinkObjectSettings).folderPath}/@{json(item().SinkObjectSettings).fileName}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "DelimitedTextSource",
+																"storeSettings": {
+																	"type": "HttpReadSettings",
+																	"requestMethod": {
+																		"value": "@json(item().CopySourceSettings).requestMethod",
+																		"type": "Expression"
+																	}
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextReadSettings",
+																	"skipLineCount": {
+																		"value": "@json(item().CopySourceSettings).skipLineCount",
+																		"type": "Expression"
+																	}
+																}
+															},
+															"sink": {
+																"type": "DelimitedTextSink",
+																"storeSettings": {
+																	"type": "AzureBlobFSWriteSettings",
+																	"copyBehavior": {
+																		"value": "@json(item().CopySinkSettings).copyBehavior",
+																		"type": "Expression"
+																	}
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextWriteSettings",
+																	"quoteAllText": {
+																		"value": "@json(item().CopySinkSettings).quoteAllText",
+																		"type": "Expression"
+																	},
+																	"fileExtension": {
+																		"value": "@json(item().CopySinkSettings).fileExtension",
+																		"type": "Expression"
+																	}
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "AdventureWorks_mm4_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_columnDelimiter": {
+																		"value": "@json(item().SourceObjectSettings).columnDelimiter",
+																		"type": "Expression"
+																	},
+																	"cw_escapeChar": {
+																		"value": "@json(item().SourceObjectSettings).escapeChar",
+																		"type": "Expression"
+																	},
+																	"cw_quoteChar": {
+																		"value": "@json(item().SourceObjectSettings).quoteChar",
+																		"type": "Expression"
+																	},
+																	"cw_firstRowAsHeader": {
+																		"value": "@json(item().SourceObjectSettings).firstRowAsHeader",
+																		"type": "Expression"
+																	},
+																	"cw_relativeUrl": {
+																		"value": "@json(item().SourceObjectSettings).relativeUrl",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "AdventureWorks_mm4_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_columnDelimiter": {
+																		"value": "@json(item().SinkObjectSettings).columnDelimiter",
+																		"type": "Expression"
+																	},
+																	"cw_escapeChar": {
+																		"value": "@json(item().SinkObjectSettings).escapeChar",
+																		"type": "Expression"
+																	},
+																	"cw_quoteChar": {
+																		"value": "@json(item().SinkObjectSettings).quoteChar",
+																		"type": "Expression"
+																	},
+																	"cw_firstRowAsHeader": {
+																		"value": "@json(item().SinkObjectSettings).firstRowAsHeader",
+																		"type": "Expression"
+																	},
+																	"cw_fileName": {
+																		"value": "@json(item().SinkObjectSettings).fileName",
+																		"type": "Expression"
+																	},
+																	"cw_folderPath": {
+																		"value": "@json(item().SinkObjectSettings).folderPath",
+																		"type": "Expression"
+																	},
+																	"cw_fileSystem": {
+																		"value": "@json(item().SinkObjectSettings).fileSystem",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "DefaultFullLoadOneObject",
+												"description": "Take a full snapshot on this object and copy it to the destination",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "@{json(item().SourceObjectSettings).relativeUrl}"
+													},
+													{
+														"name": "Destination",
+														"value": "@{json(item().SinkObjectSettings).fileSystem}/@{json(item().SinkObjectSettings).folderPath}/@{json(item().SinkObjectSettings).fileName}"
+													}
+												],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "HttpReadSettings",
+															"requestMethod": {
+																"value": "@json(item().CopySourceSettings).requestMethod",
+																"type": "Expression"
+															}
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings",
+															"skipLineCount": {
+																"value": "@json(item().CopySourceSettings).skipLineCount",
+																"type": "Expression"
+															}
+														}
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings",
+															"copyBehavior": {
+																"value": "@json(item().CopySinkSettings).copyBehavior",
+																"type": "Expression"
+															}
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": {
+																"value": "@json(item().CopySinkSettings).quoteAllText",
+																"type": "Expression"
+															},
+															"fileExtension": {
+																"value": "@json(item().CopySinkSettings).fileExtension",
+																"type": "Expression"
+															}
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"value": "@json(item().CopyActivitySettings).translator",
+														"type": "Expression"
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "AdventureWorks_mm4_SourceDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_columnDelimiter": {
+																"value": "@json(item().SourceObjectSettings).columnDelimiter",
+																"type": "Expression"
+															},
+															"cw_escapeChar": {
+																"value": "@json(item().SourceObjectSettings).escapeChar",
+																"type": "Expression"
+															},
+															"cw_quoteChar": {
+																"value": "@json(item().SourceObjectSettings).quoteChar",
+																"type": "Expression"
+															},
+															"cw_firstRowAsHeader": {
+																"value": "@json(item().SourceObjectSettings).firstRowAsHeader",
+																"type": "Expression"
+															},
+															"cw_relativeUrl": {
+																"value": "@json(item().SourceObjectSettings).relativeUrl",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "AdventureWorks_mm4_DestinationDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_columnDelimiter": {
+																"value": "@json(item().SinkObjectSettings).columnDelimiter",
+																"type": "Expression"
+															},
+															"cw_escapeChar": {
+																"value": "@json(item().SinkObjectSettings).escapeChar",
+																"type": "Expression"
+															},
+															"cw_quoteChar": {
+																"value": "@json(item().SinkObjectSettings).quoteChar",
+																"type": "Expression"
+															},
+															"cw_firstRowAsHeader": {
+																"value": "@json(item().SinkObjectSettings).firstRowAsHeader",
+																"type": "Expression"
+															},
+															"cw_fileName": {
+																"value": "@json(item().SinkObjectSettings).fileName",
+																"type": "Expression"
+															},
+															"cw_folderPath": {
+																"value": "@json(item().SinkObjectSettings).folderPath",
+																"type": "Expression"
+															},
+															"cw_fileSystem": {
+																"value": "@json(item().SinkObjectSettings).fileSystem",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"ObjectsPerGroupToCopy": {
+						"type": "Array"
+					}
+				},
+				"folder": {
+					"name": "AdventureWorks_mm4_20250912"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AdventureWorks_mm4_SourceDS')]",
+				"[concat(variables('factoryId'), '/datasets/AdventureWorks_mm4_DestinationDS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_mm4_MiddleLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will copy one batch of objects. The objects belonging to this batch will be copied parallelly.",
+				"activities": [
+					{
+						"name": "DivideOneBatchIntoMultipleGroups",
+						"description": "Divide objects from single batch into multiple sub parallel groups to avoid reaching the output limit of lookup activity.",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@range(0, add(div(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity),\n                    if(equals(mod(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity), 0), 0, 1)))",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"batchCount": 50,
+							"activities": [
+								{
+									"name": "GetObjectsPerGroupToCopy",
+									"description": "Get objects (tables etc.) from control table required to be copied in this group. The order of objects to be copied following the TaskId in control table (ORDER BY [TaskId] DESC).",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "WITH OrderedControlTable AS (\n                             SELECT *, ROW_NUMBER() OVER (ORDER BY [TaskId], [Id] DESC) AS RowNumber\n                             FROM @{pipeline().parameters.MainControlTableName}\n                             where TopLevelPipelineName = '@{pipeline().parameters.TopLevelPipelineName}'\n                             and TriggerName like '%@{pipeline().parameters.TriggerName}%' and CopyEnabled = 1)\n                             SELECT * FROM OrderedControlTable WHERE RowNumber BETWEEN @{add(mul(int(item()),pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity),\n                             add(mul(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, pipeline().parameters.CurrentSequentialNumberOfBatch), 1))}\n                             AND @{min(add(mul(int(item()), pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity), add(mul(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, pipeline().parameters.CurrentSequentialNumberOfBatch),\n                             pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity)),\n                            mul(pipeline().parameters.SumOfObjectsToCopyForCurrentBatch, add(pipeline().parameters.CurrentSequentialNumberOfBatch,1)), pipeline().parameters.SumOfObjectsToCopy)}",
+												"type": "Expression"
+											},
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "AdventureWorks_mm4_ControlDS",
+											"type": "DatasetReference",
+											"parameters": {}
+										},
+										"firstRowOnly": false
+									}
+								},
+								{
+									"name": "CopyObjectsInOneGroup",
+									"description": "Execute another pipeline to copy objects from one group. The objects belonging to this group will be copied parallelly.",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "GetObjectsPerGroupToCopy",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "AdventureWorks_mm4_BottomLevel",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"ObjectsPerGroupToCopy": {
+												"value": "@activity('GetObjectsPerGroupToCopy').output.value",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"MaxNumberOfObjectsReturnedFromLookupActivity": {
+						"type": "Int"
+					},
+					"TopLevelPipelineName": {
+						"type": "String"
+					},
+					"TriggerName": {
+						"type": "String"
+					},
+					"CurrentSequentialNumberOfBatch": {
+						"type": "Int"
+					},
+					"SumOfObjectsToCopy": {
+						"type": "Int"
+					},
+					"SumOfObjectsToCopyForCurrentBatch": {
+						"type": "Int"
+					},
+					"MainControlTableName": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWorks_mm4_20250912"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AdventureWorks_mm4_ControlDS')]",
+				"[concat(variables('factoryId'), '/pipelines/AdventureWorks_mm4_BottomLevel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_mm4_TopLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will count the total number of objects (tables etc.) required to be copied in this run, come up with the number of sequential batches based on the max allowed concurrent copy task, and then execute another pipeline to copy different batches sequentially.",
+				"activities": [
+					{
+						"name": "GetSumOfObjectsToCopy",
+						"description": "Count the total number of objects (tables etc.) required to be copied in this run.",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT count(*) as count FROM @{pipeline().parameters.MainControlTableName} where TopLevelPipelineName='@{pipeline().Pipeline}' and TriggerName like '%@{pipeline().TriggerName}%' and CopyEnabled = 1",
+									"type": "Expression"
+								},
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "AdventureWorks_mm4_ControlDS",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "CopyBatchesOfObjectsSequentially",
+						"description": "Come up with the number of sequential batches based on the max allowed concurrent copy tasks, and then execute another pipeline to copy different batches sequentially.",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "GetSumOfObjectsToCopy",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@range(0, add(div(activity('GetSumOfObjectsToCopy').output.firstRow.count,\n                    pipeline().parameters.MaxNumberOfConcurrentTasks),\n                    if(equals(mod(activity('GetSumOfObjectsToCopy').output.firstRow.count,\n                    pipeline().parameters.MaxNumberOfConcurrentTasks), 0), 0, 1)))",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "CopyObjectsInOneBatch",
+									"description": "Execute another pipeline to copy one batch of objects. The objects belonging to this batch will be copied parallelly.",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "AdventureWorks_mm4_MiddleLevel",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"MaxNumberOfObjectsReturnedFromLookupActivity": {
+												"value": "@pipeline().parameters.MaxNumberOfObjectsReturnedFromLookupActivity",
+												"type": "Expression"
+											},
+											"TopLevelPipelineName": {
+												"value": "@{pipeline().Pipeline}",
+												"type": "Expression"
+											},
+											"TriggerName": {
+												"value": "@{pipeline().TriggerName}",
+												"type": "Expression"
+											},
+											"CurrentSequentialNumberOfBatch": {
+												"value": "@item()",
+												"type": "Expression"
+											},
+											"SumOfObjectsToCopy": {
+												"value": "@activity('GetSumOfObjectsToCopy').output.firstRow.count",
+												"type": "Expression"
+											},
+											"SumOfObjectsToCopyForCurrentBatch": {
+												"value": "@min(pipeline().parameters.MaxNumberOfConcurrentTasks, activity('GetSumOfObjectsToCopy').output.firstRow.count)",
+												"type": "Expression"
+											},
+											"MainControlTableName": {
+												"value": "@pipeline().parameters.MainControlTableName",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"MaxNumberOfObjectsReturnedFromLookupActivity": {
+						"type": "Int",
+						"defaultValue": 5000
+					},
+					"MaxNumberOfConcurrentTasks": {
+						"type": "Int",
+						"defaultValue": 20
+					},
+					"MainControlTableName": {
+						"type": "String",
+						"defaultValue": "dbo.MainControlTable_mm4"
+					}
+				},
+				"folder": {
+					"name": "AdventureWorks_mm4_20250912"
+				},
+				"annotations": [
+					"MetadataDrivenSolution"
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AdventureWorks_mm4_ControlDS')]",
+				"[concat(variables('factoryId'), '/pipelines/AdventureWorks_mm4_MiddleLevel')]"
+			]
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/CopyPipeline_xtl')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
@@ -5303,6 +6509,179 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pipeline_AdvGold')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Dataflw-Adventure",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow-Adventure",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"Silver": {},
+									"Gold": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow-Adventure')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline_AdveGold')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "dataflw-Adventure",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow-Adventure",
+								"type": "DataFlowReference",
+								"parameters": {
+									"startTime": {
+										"value": "'@{trigger().startTime\n}'",
+										"type": "Expression"
+									}
+								},
+								"datasetParameters": {
+									"Silver": {},
+									"Gold": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow-Adventure')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline_AdventureWorks')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "GitHub-hosted",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_GitHub",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_bronze",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_GitHub')]",
+				"[concat(variables('factoryId'), '/datasets/ds_bronze')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pipeline_Incremental_Copy')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -5556,6 +6935,129 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pipelineadfgit')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "dataflowgitproject",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflowgitproject",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"dataflow": {},
+									"sinkgitproject": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflowgitproject')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipelinegitadfproject')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "dsgitproject",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "dssinkgitproject",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/dsgitproject')]",
+				"[concat(variables('factoryId'), '/datasets/dssinkgitproject')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pipelinelookup_foreach')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -5792,6 +7294,468 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/dsAzureSqlTable')]",
 				"[concat(variables('factoryId'), '/datasets/dsadlscsv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWork_lbj_ControlDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "AdventureWork_lbj_20250913"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "MainControlTable_lbj"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWork_lbj_DestinationDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_schema": {
+						"type": "String"
+					},
+					"cw_table": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWork_lbj_20250913"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().cw_schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().cw_table",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWork_lbj_SourceDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_columnDelimiter": {
+						"type": "String"
+					},
+					"cw_escapeChar": {
+						"type": "String"
+					},
+					"cw_quoteChar": {
+						"type": "String"
+					},
+					"cw_firstRowAsHeader": {
+						"type": "Bool"
+					},
+					"cw_fileName": {
+						"type": "String"
+					},
+					"cw_folderPath": {
+						"type": "Object"
+					},
+					"cw_fileSystem": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWork_lbj_20250913"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().cw_fileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().cw_folderPath",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().cw_fileSystem",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": {
+						"value": "@dataset().cw_columnDelimiter",
+						"type": "Expression"
+					},
+					"escapeChar": {
+						"value": "@dataset().cw_escapeChar",
+						"type": "Expression"
+					},
+					"firstRowAsHeader": {
+						"value": "@dataset().cw_firstRowAsHeader",
+						"type": "Expression"
+					},
+					"quoteChar": {
+						"value": "@dataset().cw_quoteChar",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_8bi_ControlDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "AdventureWorks_8bi_20250912"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "Sales",
+					"table": "MainControlTable"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_8bi_DestinationDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_columnDelimiter": {
+						"type": "String"
+					},
+					"cw_escapeChar": {
+						"type": "String"
+					},
+					"cw_quoteChar": {
+						"type": "String"
+					},
+					"cw_firstRowAsHeader": {
+						"type": "Bool"
+					},
+					"cw_fileName": {
+						"type": "String"
+					},
+					"cw_folderPath": {
+						"type": "Object"
+					},
+					"cw_fileSystem": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWorks_8bi_20250912"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().cw_fileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().cw_folderPath",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().cw_fileSystem",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": {
+						"value": "@dataset().cw_columnDelimiter",
+						"type": "Expression"
+					},
+					"escapeChar": {
+						"value": "@dataset().cw_escapeChar",
+						"type": "Expression"
+					},
+					"firstRowAsHeader": {
+						"value": "@dataset().cw_firstRowAsHeader",
+						"type": "Expression"
+					},
+					"quoteChar": {
+						"value": "@dataset().cw_quoteChar",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_8bi_SourceDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "HttpServer",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_columnDelimiter": {
+						"type": "String"
+					},
+					"cw_escapeChar": {
+						"type": "String"
+					},
+					"cw_quoteChar": {
+						"type": "String"
+					},
+					"cw_firstRowAsHeader": {
+						"type": "Bool"
+					},
+					"cw_relativeUrl": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWorks_8bi_20250912"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": {
+							"value": "@dataset().cw_relativeUrl",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": {
+						"value": "@dataset().cw_columnDelimiter",
+						"type": "Expression"
+					},
+					"escapeChar": {
+						"value": "@dataset().cw_escapeChar",
+						"type": "Expression"
+					},
+					"firstRowAsHeader": {
+						"value": "@dataset().cw_firstRowAsHeader",
+						"type": "Expression"
+					},
+					"quoteChar": {
+						"value": "@dataset().cw_quoteChar",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/HttpServer')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_mm4_ControlDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "AdventureWorks_mm4_20250912"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "MainControlTable_mm4"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_mm4_DestinationDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_columnDelimiter": {
+						"type": "String"
+					},
+					"cw_escapeChar": {
+						"type": "String"
+					},
+					"cw_quoteChar": {
+						"type": "String"
+					},
+					"cw_firstRowAsHeader": {
+						"type": "Bool"
+					},
+					"cw_fileName": {
+						"type": "String"
+					},
+					"cw_folderPath": {
+						"type": "Object"
+					},
+					"cw_fileSystem": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWorks_mm4_20250912"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().cw_fileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().cw_folderPath",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().cw_fileSystem",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": {
+						"value": "@dataset().cw_columnDelimiter",
+						"type": "Expression"
+					},
+					"escapeChar": {
+						"value": "@dataset().cw_escapeChar",
+						"type": "Expression"
+					},
+					"firstRowAsHeader": {
+						"value": "@dataset().cw_firstRowAsHeader",
+						"type": "Expression"
+					},
+					"quoteChar": {
+						"value": "@dataset().cw_quoteChar",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AdventureWorks_mm4_SourceDS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "HttpServer",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_columnDelimiter": {
+						"type": "String"
+					},
+					"cw_escapeChar": {
+						"type": "String"
+					},
+					"cw_quoteChar": {
+						"type": "String"
+					},
+					"cw_firstRowAsHeader": {
+						"type": "Bool"
+					},
+					"cw_relativeUrl": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "AdventureWorks_mm4_20250912"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": {
+							"value": "@dataset().cw_relativeUrl",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": {
+						"value": "@dataset().cw_columnDelimiter",
+						"type": "Expression"
+					},
+					"escapeChar": {
+						"value": "@dataset().cw_escapeChar",
+						"type": "Expression"
+					},
+					"firstRowAsHeader": {
+						"value": "@dataset().cw_firstRowAsHeader",
+						"type": "Expression"
+					},
+					"quoteChar": {
+						"value": "@dataset().cw_quoteChar",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/HttpServer')]"
 			]
 		},
 		{
@@ -6494,6 +8458,33 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText14')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "synapsedata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DelimitedText2')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -6813,6 +8804,55 @@
 					"quoteChar": "\""
 				},
 				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedTextdf')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "04-20.csv",
+						"fileSystem": "data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "SalesMonth",
+						"type": "String"
+					},
+					{
+						"name": "Retailer",
+						"type": "String"
+					},
+					{
+						"name": "Product",
+						"type": "String"
+					},
+					{
+						"name": "SalesValueUSD",
+						"type": "String"
+					},
+					{
+						"name": "UnitsSold",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
@@ -8467,6 +10507,81 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_GitHub')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "HttpServer",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "olafusimichael/AdventureWorksCSV/refs/heads/main/Sales%20SalesOrderHeader.csv"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/HttpServer')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_bronze')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "bronze-sales"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_gold')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderGold"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/dsadls')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -8649,6 +10764,166 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsbr_silver')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "bronze-sales"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsbronzeadls')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "SalesOrder",
+						"fileSystem": "bronze-sales"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "String"
+					},
+					{
+						"name": "RevisionNumber",
+						"type": "String"
+					},
+					{
+						"name": "OrderDate",
+						"type": "String"
+					},
+					{
+						"name": "DueDate",
+						"type": "String"
+					},
+					{
+						"name": "ShipDate",
+						"type": "String"
+					},
+					{
+						"name": "Status",
+						"type": "String"
+					},
+					{
+						"name": "OnlineOrderFlag",
+						"type": "String"
+					},
+					{
+						"name": "SalesOrderNumber",
+						"type": "String"
+					},
+					{
+						"name": "PurchaseOrderNumber",
+						"type": "String"
+					},
+					{
+						"name": "AccountNumber",
+						"type": "String"
+					},
+					{
+						"name": "CustomerID",
+						"type": "String"
+					},
+					{
+						"name": "SalesPersonID",
+						"type": "String"
+					},
+					{
+						"name": "TerritoryID",
+						"type": "String"
+					},
+					{
+						"name": "BillToAddressID",
+						"type": "String"
+					},
+					{
+						"name": "ShipToAddressID",
+						"type": "String"
+					},
+					{
+						"name": "ShipMethodID",
+						"type": "String"
+					},
+					{
+						"name": "CreditCardID",
+						"type": "String"
+					},
+					{
+						"name": "CreditCardApprovalCode",
+						"type": "String"
+					},
+					{
+						"name": "CurrencyRateID",
+						"type": "String"
+					},
+					{
+						"name": "SubTotal",
+						"type": "String"
+					},
+					{
+						"name": "TaxAmt",
+						"type": "String"
+					},
+					{
+						"name": "Freight",
+						"type": "String"
+					},
+					{
+						"name": "TotalDue",
+						"type": "String"
+					},
+					{
+						"name": "Comment",
+						"type": "String"
+					},
+					{
+						"name": "rowguid",
+						"type": "String"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
 			]
 		},
 		{
@@ -9481,6 +11756,55 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/dsgitproject')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "04-20.csv",
+						"fileSystem": "silver"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "SalesMonth",
+						"type": "String"
+					},
+					{
+						"name": "Retailer",
+						"type": "String"
+					},
+					{
+						"name": "Product",
+						"type": "String"
+					},
+					{
+						"name": "SalesValueUSD",
+						"type": "String"
+					},
+					{
+						"name": "UnitsSold",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/dsincremental_sink')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -9721,6 +12045,132 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/dssilver')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "RevisionNumber",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OrderDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DueDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ShipDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Status",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OnlineOrderFlag",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SalesOrderNumber",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PurchaseOrderNumber",
+						"type": "nvarchar"
+					},
+					{
+						"name": "AccountNumber",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CustomerID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SalesPersonID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TerritoryID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "BillToAddressID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ShipToAddressID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ShipMethodID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CreditCardID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CreditCardApprovalCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CurrencyRateID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SubTotal",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TaxAmt",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Freight",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TotalDue",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Comment",
+						"type": "nvarchar"
+					},
+					{
+						"name": "rowguid",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrder"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/dssilverparquet')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -9791,6 +12241,70 @@
 					"compressionCodec": "snappy"
 				},
 				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dssinkgitproject')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "data"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "9",
+						"type": "String"
+					},
+					{
+						"name": "8713 Yosemite Ct.",
+						"type": "String"
+					},
+					{
+						"name": "Prop_2",
+						"type": "String"
+					},
+					{
+						"name": "Bothell",
+						"type": "String"
+					},
+					{
+						"name": "Washington",
+						"type": "String"
+					},
+					{
+						"name": "United States",
+						"type": "String"
+					},
+					{
+						"name": "98011",
+						"type": "String"
+					},
+					{
+						"name": "268af621-76d7-4c78-9441-144fd139821a",
+						"type": "String"
+					},
+					{
+						"name": "2006-07-01 00:00:00.0000000",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/lsazureadlshv')]"
@@ -9919,6 +12433,81 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/HttpServer')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('HttpServer_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/HttpServer1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('HttpServer1_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": false,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LSRestService')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('LSRestService_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LSRestService1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('LSRestService1_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": false,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LSRestService3')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('LSRestService3_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LSSYNAPSE')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -9936,6 +12525,96 @@
 						"type": "SecureString",
 						"value": "[parameters('LSSYNAPSE_password')]"
 					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService4')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService4_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService5')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService5_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService6')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService6_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService7')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService7_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService8')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService8_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService9')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService9_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
 				}
 			},
 			"dependsOn": []
@@ -9995,6 +12674,90 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Trigger_8bi')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Minute",
+					"interval": 5,
+					"startTime": "2000-01-01T12:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Trigger_mm4')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "AdventureWorks_mm4_TopLevel",
+						"type": "PipelineReference"
+					},
+					"parameters": {}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Minute",
+					"interval": 5,
+					"startTime": "2000-01-01T04:50:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/AdventureWorks_mm4_TopLevel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trigger')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "pipeline_AdveGold",
+						"type": "PipelineReference"
+					},
+					"parameters": {}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Minute",
+					"interval": 5,
+					"startTime": "2025-09-13T02:54:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pipeline_AdveGold')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Transform_Sales_To_Silver')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -10052,6 +12815,110 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/dessert4allparquet')]",
 				"[concat(variables('factoryId'), '/datasets/dsdessert4Allsink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow-Adventure')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "dssilver",
+								"type": "DatasetReference"
+							},
+							"name": "Silver"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_gold",
+								"type": "DatasetReference"
+							},
+							"name": "Gold"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Filter"
+						},
+						{
+							"name": "DerivedColumn"
+						},
+						{
+							"name": "Select"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     startTime as string ('2000-01-01T00:00:00Z')",
+						"}",
+						"source(output(",
+						"          SalesOrderID as string,",
+						"          RevisionNumber as string,",
+						"          OrderDate as string,",
+						"          DueDate as string,",
+						"          ShipDate as string,",
+						"          Status as string,",
+						"          OnlineOrderFlag as string,",
+						"          SalesOrderNumber as string,",
+						"          PurchaseOrderNumber as string,",
+						"          AccountNumber as string,",
+						"          CustomerID as string,",
+						"          SalesPersonID as string,",
+						"          TerritoryID as string,",
+						"          BillToAddressID as string,",
+						"          ShipToAddressID as string,",
+						"          ShipMethodID as string,",
+						"          CreditCardID as string,",
+						"          CreditCardApprovalCode as string,",
+						"          CurrencyRateID as string,",
+						"          SubTotal as string,",
+						"          TaxAmt as string,",
+						"          Freight as string,",
+						"          TotalDue as string,",
+						"          Comment as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> Silver",
+						"Silver filter(toTimestamp(ModifiedDate) > toTimestamp($startTime)) ~> Filter",
+						"Filter derive(Year = year(toTimestamp(OrderDate)),",
+						"          LoadTimeStamp = currentTimestamp()) ~> DerivedColumn",
+						"DerivedColumn select(mapColumn(",
+						"          SalesOrderID,",
+						"          OrderDate,",
+						"          Year,",
+						"          CustomerID,",
+						"          TotalDue,",
+						"          ModifiedDate,",
+						"          LoadTimeStamp",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> Select",
+						"Select sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> Gold"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/dssilver')]",
+				"[concat(variables('factoryId'), '/datasets/ds_gold')]"
 			]
 		},
 		{
@@ -10610,6 +13477,72 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/Parquetdessert')]",
 				"[concat(variables('factoryId'), '/datasets/dessert4allparquetsilver')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflowgitproject')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DelimitedTextdf",
+								"type": "DatasetReference"
+							},
+							"name": "dataflow"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DelimitedText14",
+								"type": "DatasetReference"
+							},
+							"name": "sinkgitproject",
+							"description": "Final Gold Sink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "select1",
+							"description": "Removing Retailer column"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          SalesMonth as string,",
+						"          Retailer as string,",
+						"          Product as string,",
+						"          SalesValueUSD as string,",
+						"          UnitsSold as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> dataflow",
+						"dataflow select(mapColumn(",
+						"          SalesMonth,",
+						"          Product,",
+						"          SalesValueUSD,",
+						"          UnitsSold",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sinkgitproject"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DelimitedTextdf')]",
+				"[concat(variables('factoryId'), '/datasets/DelimitedText14')]"
 			]
 		},
 		{
