@@ -1,0 +1,19 @@
+{
+	"name": "AdventureWork_lbj_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lssqldatabase",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "AdventureWork_lbj_20250913"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "MainControlTable_lbj"
+		}
+	}
+}
