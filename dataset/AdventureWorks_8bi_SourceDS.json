@@ -1,0 +1,57 @@
+{
+	"name": "AdventureWorks_8bi_SourceDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "HttpServer",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_columnDelimiter": {
+				"type": "String"
+			},
+			"cw_escapeChar": {
+				"type": "String"
+			},
+			"cw_quoteChar": {
+				"type": "String"
+			},
+			"cw_firstRowAsHeader": {
+				"type": "Bool"
+			},
+			"cw_relativeUrl": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "AdventureWorks_8bi_20250912"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": {
+					"value": "@dataset().cw_relativeUrl",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": {
+				"value": "@dataset().cw_columnDelimiter",
+				"type": "Expression"
+			},
+			"escapeChar": {
+				"value": "@dataset().cw_escapeChar",
+				"type": "Expression"
+			},
+			"firstRowAsHeader": {
+				"value": "@dataset().cw_firstRowAsHeader",
+				"type": "Expression"
+			},
+			"quoteChar": {
+				"value": "@dataset().cw_quoteChar",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	}
+}
