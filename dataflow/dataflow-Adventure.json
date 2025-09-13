@@ -23,9 +23,6 @@
 			],
 			"transformations": [
 				{
-					"name": "Filter"
-				},
-				{
 					"name": "DerivedColumn"
 				},
 				{
@@ -68,10 +65,7 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> Silver",
-				"Silver filter(toTimestamp(ModifiedDate) > toTimestamp($startTime)",
-				"",
-				") ~> Filter",
-				"Filter derive(Year = year(toTimestamp(OrderDate)),",
+				"Silver derive(Year = year(toTimestamp(OrderDate)),",
 				"          LoadTimeStamp = currentTimestamp()) ~> DerivedColumn",
 				"DerivedColumn select(mapColumn(",
 				"          SalesOrderID,",
