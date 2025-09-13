@@ -1,0 +1,19 @@
+{
+	"name": "AdventureWorks_8bi_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lssqldatabase",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "AdventureWorks_8bi_20250912"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "Sales",
+			"table": "MainControlTable"
+		}
+	}
+}
