@@ -13,6 +13,173 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/dscopycandyshark')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"folderPath": "staging/Azure-Data-Factory-datasets.zip/Azure-Data-Factory-by-Example-Second-Edition-main/SampleData/CandyShack",
+						"fileSystem": "projectadf"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsdatasetsilver')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "cleaned_parquet",
+						"folderPath": "silver",
+						"fileSystem": "projectadf"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "SalesMonth",
+						"type": "UTF8"
+					},
+					{
+						"name": "Retailer",
+						"type": "UTF8"
+					},
+					{
+						"name": "Product",
+						"type": "UTF8"
+					},
+					{
+						"name": "SalesValueUSD",
+						"type": "FLOAT"
+					},
+					{
+						"name": "UnitsSold",
+						"type": "INT32"
+					},
+					{
+						"name": "Revenue",
+						"type": "FLOAT"
+					},
+					{
+						"name": "CustomerID",
+						"type": "INT64"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsdepartmentsource')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Dept.csv",
+						"fileSystem": "companydepartment"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "UserID",
+						"type": "String"
+					},
+					{
+						"name": "Dept",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsderived')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Derived.csv",
+						"folderPath": "sink",
+						"fileSystem": "companyproject"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "CusID",
+						"type": "String"
+					},
+					{
+						"name": "Sales",
+						"type": "String"
+					},
+					{
+						"name": "Profit",
+						"type": "String"
+					},
+					{
+						"name": "Address",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/dsderivedsink')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -543,147 +710,6 @@
 					"schema": "dbo",
 					"table": "LoverGirl"
 				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dsnewyork')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "NY.csv",
-						"fileSystem": "companyemployee"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "Month",
-						"type": "String"
-					},
-					{
-						"name": "Sales",
-						"type": "String"
-					},
-					{
-						"name": "Profit",
-						"type": "String"
-					},
-					{
-						"name": "Location",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dsnewyorkcalijson')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileSystem": "companyempdept"
-					}
-				},
-				"schema": {}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dssAynapsedessert4All')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LSSYNAPSE",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [
-					{
-						"name": "Product",
-						"type": "varchar"
-					},
-					{
-						"name": "TotalRevenuePerProduct",
-						"type": "bigint",
-						"precision": 19
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "SalesGold"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dsselect')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "Select.csv",
-						"folderPath": "TESTING FOLDER",
-						"fileSystem": "containerforadls"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "EmpID",
-						"type": "String"
-					},
-					{
-						"name": "Sales",
-						"type": "String"
-					},
-					{
-						"name": "Profit",
-						"type": "String"
-					},
-					{
-						"name": "Email",
-						"type": "String"
-					},
-					{
-						"name": "Address",
-						"type": "String"
-					}
-				]
 			},
 			"dependsOn": []
 		}

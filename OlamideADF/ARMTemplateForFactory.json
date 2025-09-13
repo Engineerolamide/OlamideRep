@@ -5712,6 +5712,54 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pipeline-AdvGold')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "AdventureWorks",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow-Adventure",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"Silver": {},
+									"SalesGold": {},
+									"Gold": {},
+									"AdventureWorks": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow-Adventure')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -6506,179 +6554,6 @@
 				"[concat(variables('factoryId'), '/datasets/dscandysharkcsv')]",
 				"[concat(variables('factoryId'), '/datasets/dscandysharcopy')]",
 				"[concat(variables('factoryId'), '/datasets/dscandysharksql1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pipeline_AdvGold')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Dataflw-Adventure",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "dataflow-Adventure",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"Silver": {},
-									"Gold": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/dataflow-Adventure')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pipeline_AdveGold')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "dataflw-Adventure",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "dataflow-Adventure",
-								"type": "DataFlowReference",
-								"parameters": {
-									"startTime": {
-										"value": "'@{trigger().startTime\n}'",
-										"type": "Expression"
-									}
-								},
-								"datasetParameters": {
-									"Silver": {},
-									"Gold": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/dataflow-Adventure')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pipeline_AdventureWorks')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "GitHub-hosted",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_GitHub",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_bronze",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_GitHub')]",
-				"[concat(variables('factoryId'), '/datasets/ds_bronze')]"
 			]
 		},
 		{
@@ -7914,6 +7789,58 @@
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "LoverGirl"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTable7')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OrderDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TotalDue",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LoadTimeStamp",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderGold"
 				}
 			},
 			"dependsOn": [
@@ -10507,6 +10434,58 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/dsSalesGold')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OrderDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TotalDue",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LoadTimeStamp",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderGold"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_GitHub')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -10531,6 +10510,58 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/HttpServer')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adventurefinal')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OrderDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TotalDue",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LoadTimeStamp",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderGold"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
 			]
 		},
 		{
@@ -10572,6 +10603,58 @@
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderGold"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_saleGold')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OrderDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TotalDue",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LoadTimeStamp",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "SalesOrderGold"
@@ -11995,6 +12078,58 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/dssalesorderGold')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OrderDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TotalDue",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LoadTimeStamp",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderGold"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/dsselect')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -12727,37 +12862,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/trigger')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "pipeline_AdveGold",
-						"type": "PipelineReference"
-					},
-					"parameters": {}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Minute",
-					"interval": 5,
-					"startTime": "2025-09-13T02:54:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 50,
-					"retryPolicy": {
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/pipeline_AdveGold')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/Transform_Sales_To_Silver')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -12831,6 +12935,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "Silver"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_saleGold",
+								"type": "DatasetReference"
+							},
+							"name": "SalesGold"
 						}
 					],
 					"sinks": [
@@ -12840,27 +12951,37 @@
 								"type": "DatasetReference"
 							},
 							"name": "Gold"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_adventurefinal",
+								"type": "DatasetReference"
+							},
+							"name": "AdventureWorks"
 						}
 					],
 					"transformations": [
-						{
-							"name": "Filter"
-						},
 						{
 							"name": "DerivedColumn"
 						},
 						{
 							"name": "Select"
+						},
+						{
+							"name": "Aggregate"
+						},
+						{
+							"name": "Join"
+						},
+						{
+							"name": "AlterRow"
 						}
 					],
 					"scriptLines": [
-						"parameters{",
-						"     startTime as string ('2000-01-01T00:00:00Z')",
-						"}",
 						"source(output(",
 						"          SalesOrderID as string,",
 						"          RevisionNumber as string,",
-						"          OrderDate as string,",
+						"          OrderDate as date,",
 						"          DueDate as string,",
 						"          ShipDate as string,",
 						"          Status as string,",
@@ -12880,7 +13001,7 @@
 						"          SubTotal as string,",
 						"          TaxAmt as string,",
 						"          Freight as string,",
-						"          TotalDue as string,",
+						"          TotalDue as integer,",
 						"          Comment as string,",
 						"          rowguid as string,",
 						"          ModifiedDate as string",
@@ -12889,20 +13010,47 @@
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> Silver",
-						"Silver filter(toTimestamp(ModifiedDate) > toTimestamp($startTime)) ~> Filter",
-						"Filter derive(Year = year(toTimestamp(OrderDate)),",
+						"source(output(",
+						"          SalesOrderID as string,",
+						"          OrderDate as string,",
+						"          Year as integer,",
+						"          CustomerID as string,",
+						"          TotalDue as string,",
+						"          ModifiedDate as string,",
+						"          LoadTimeStamp as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> SalesGold",
+						"Silver derive(Year = year(toTimestamp(OrderDate)),",
 						"          LoadTimeStamp = currentTimestamp()) ~> DerivedColumn",
-						"DerivedColumn select(mapColumn(",
-						"          SalesOrderID,",
+						"Aggregate select(mapColumn(",
 						"          OrderDate,",
+						"          SalesOrderID,",
 						"          Year,",
 						"          CustomerID,",
 						"          TotalDue,",
 						"          ModifiedDate,",
-						"          LoadTimeStamp",
+						"          LoadTimeStamp,",
+						"          {Daily Sales Volume}",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> Select",
+						"DerivedColumn aggregate(groupBy(OrderDate,",
+						"          SalesOrderID,",
+						"          CustomerID,",
+						"          TotalDue,",
+						"          Year,",
+						"          LoadTimeStamp,",
+						"          ModifiedDate),",
+						"     {Daily Sales Volume} = sum(TotalDue)) ~> Aggregate",
+						"Silver, SalesGold join(Silver@SalesOrderID == SalesGold@SalesOrderID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> Join",
+						"Join alterRow(insertIf(isNull(SalesGold@SalesOrderID))) ~> AlterRow",
 						"Select sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     deletable:false,",
@@ -12912,13 +13060,34 @@
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> Gold"
+						"     errorHandlingOption: 'stopOnFirstError') ~> Gold",
+						"AlterRow sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SalesOrderID as string,",
+						"          OrderDate as string,",
+						"          Year as integer,",
+						"          CustomerID as string,",
+						"          TotalDue as string,",
+						"          ModifiedDate as string,",
+						"          LoadTimeStamp as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> AdventureWorks"
 					]
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/dssilver')]",
-				"[concat(variables('factoryId'), '/datasets/ds_gold')]"
+				"[concat(variables('factoryId'), '/datasets/ds_saleGold')]",
+				"[concat(variables('factoryId'), '/datasets/ds_gold')]",
+				"[concat(variables('factoryId'), '/datasets/ds_adventurefinal')]"
 			]
 		},
 		{

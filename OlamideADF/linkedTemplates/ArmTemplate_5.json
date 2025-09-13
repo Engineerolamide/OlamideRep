@@ -13,6 +13,82 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/dsIncCopy')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "staging/Azure-Data-Factory-datasets.zip/Azure-Data-Factory-by-Example-Second-Edition-main/SampleData/Desserts4All",
+						"fileSystem": "projectadf"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dsSalesGold')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OrderDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TotalDue",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LoadTimeStamp",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderGold"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_GitHub')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -34,6 +110,56 @@
 					"quoteChar": "\""
 				},
 				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adventurefinal')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OrderDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TotalDue",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LoadTimeStamp",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderGold"
+				}
 			},
 			"dependsOn": []
 		},
@@ -74,6 +200,56 @@
 				"annotations": [],
 				"type": "AzureSqlTable",
 				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderGold"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_saleGold')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "OrderDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TotalDue",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LoadTimeStamp",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "SalesOrderGold"
@@ -625,173 +801,6 @@
 						"type": "Expression"
 					}
 				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dscopycandyshark')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"FileName": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().FileName",
-							"type": "Expression"
-						},
-						"folderPath": "staging/Azure-Data-Factory-datasets.zip/Azure-Data-Factory-by-Example-Second-Edition-main/SampleData/CandyShack",
-						"fileSystem": "projectadf"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dsdatasetsilver')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Parquet",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "cleaned_parquet",
-						"folderPath": "silver",
-						"fileSystem": "projectadf"
-					},
-					"compressionCodec": "snappy"
-				},
-				"schema": [
-					{
-						"name": "SalesMonth",
-						"type": "UTF8"
-					},
-					{
-						"name": "Retailer",
-						"type": "UTF8"
-					},
-					{
-						"name": "Product",
-						"type": "UTF8"
-					},
-					{
-						"name": "SalesValueUSD",
-						"type": "FLOAT"
-					},
-					{
-						"name": "UnitsSold",
-						"type": "INT32"
-					},
-					{
-						"name": "Revenue",
-						"type": "FLOAT"
-					},
-					{
-						"name": "CustomerID",
-						"type": "INT64"
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dsdepartmentsource')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "Dept.csv",
-						"fileSystem": "companydepartment"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "UserID",
-						"type": "String"
-					},
-					{
-						"name": "Dept",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dsderived')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "Derived.csv",
-						"folderPath": "sink",
-						"fileSystem": "companyproject"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "CusID",
-						"type": "String"
-					},
-					{
-						"name": "Sales",
-						"type": "String"
-					},
-					{
-						"name": "Profit",
-						"type": "String"
-					},
-					{
-						"name": "Address",
-						"type": "String"
-					}
-				]
 			},
 			"dependsOn": []
 		}

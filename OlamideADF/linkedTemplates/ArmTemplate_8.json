@@ -13,6 +13,2319 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/MetadataDrivenCopyTaskMaketng_hft_BottomLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will copy objects from one group. The objects belonging to this group will be copied parallelly.",
+				"activities": [
+					{
+						"name": "ListObjectsFromOneGroup",
+						"description": "List objects from one group and iterate each of them to downstream activities",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.ObjectsPerGroupToCopy",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "RouteJobsBasedOnLoadingBehavior",
+									"description": "Check the loading behavior for each object if it requires full load or incremental load. If it is Default or FullLoad case, do full load. If it is DeltaLoad case, do incremental load.",
+									"type": "Switch",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@json(item().DataLoadingBehaviorSettings).dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "FullLoad",
+												"activities": [
+													{
+														"name": "FullLoadOneObject",
+														"description": "Take a full snapshot on this object and copy it to the destination",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTaskMaketng_hft_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTaskMaketng_hft_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													}
+												]
+											},
+											{
+												"value": "DeltaLoad",
+												"activities": [
+													{
+														"name": "GetMaxWatermarkValue",
+														"description": "Query the source object to get the max value from watermark column",
+														"type": "Lookup",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select max([@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}]) as CurrentMaxWaterMarkColumnValue from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}]",
+																	"type": "Expression"
+																},
+																"partitionOption": "None"
+															},
+															"dataset": {
+																"referenceName": "MetadataDrivenCopyTaskMaketng_hft_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														}
+													},
+													{
+														"name": "DeltaLoadOneObject",
+														"description": "Copy the changed data only from last time via comparing the value in watermark column to identify changes.",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "GetMaxWatermarkValue",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select * from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}] \n    where [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] > @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, \n    concat('''', json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, ''''))}\n    and [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] <= @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTaskMaketng_hft_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTaskMaketng_hft_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													},
+													{
+														"name": "UpdateWatermarkColumnValue",
+														"type": "SqlServerStoredProcedure",
+														"dependsOn": [
+															{
+																"activity": "DeltaLoadOneObject",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"storedProcedureName": "[[Marktng].[UpdateWatermarkColumnValue_hft]",
+															"storedProcedureParameters": {
+																"Id": {
+																	"value": {
+																		"value": "@item().Id",
+																		"type": "Expression"
+																	},
+																	"type": "Int32"
+																},
+																"watermarkColumnStartValue": {
+																	"value": {
+																		"value": "@activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																}
+															}
+														},
+														"linkedServiceName": {
+															"referenceName": "lssqldatabase",
+															"type": "LinkedServiceReference"
+														}
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "DefaultFullLoadOneObject",
+												"description": "Take a full snapshot on this object and copy it to the destination",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+													},
+													{
+														"name": "Destination",
+														"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+													}
+												],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+															"type": "Expression"
+														},
+														"partitionOption": {
+															"value": "@json(item().CopySourceSettings).partitionOption",
+															"type": "Expression"
+														},
+														"partitionSettings": {
+															"partitionColumnName": {
+																"value": "@json(item().CopySourceSettings).partitionColumnName",
+																"type": "Expression"
+															},
+															"partitionUpperBound": {
+																"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																"type": "Expression"
+															},
+															"partitionLowerBound": {
+																"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																"type": "Expression"
+															},
+															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+														}
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"preCopyScript": {
+															"value": "@json(item().CopySinkSettings).preCopyScript",
+															"type": "Expression"
+														},
+														"tableOption": {
+															"value": "@json(item().CopySinkSettings).tableOption",
+															"type": "Expression"
+														}
+													},
+													"enableStaging": false,
+													"validateDataConsistency": false,
+													"translator": {
+														"value": "@json(item().CopyActivitySettings).translator",
+														"type": "Expression"
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTaskMaketng_hft_SourceDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SourceObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SourceObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTaskMaketng_hft_DestinationDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SinkObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SinkObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"ObjectsPerGroupToCopy": {
+						"type": "Array"
+					}
+				},
+				"folder": {
+					"name": "MetadataDrivenCopyTaskMaketng_hft_20250722"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MetadataDrivenCopyTaskMarketng_jri_BottomLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will copy objects from one group. The objects belonging to this group will be copied parallelly.",
+				"activities": [
+					{
+						"name": "ListObjectsFromOneGroup",
+						"description": "List objects from one group and iterate each of them to downstream activities",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.ObjectsPerGroupToCopy",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "RouteJobsBasedOnLoadingBehavior",
+									"description": "Check the loading behavior for each object if it requires full load or incremental load. If it is Default or FullLoad case, do full load. If it is DeltaLoad case, do incremental load.",
+									"type": "Switch",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@json(item().DataLoadingBehaviorSettings).dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "FullLoad",
+												"activities": [
+													{
+														"name": "FullLoadOneObject",
+														"description": "Take a full snapshot on this object and copy it to the destination",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTaskMarketng_jri_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTaskMarketng_jri_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													}
+												]
+											},
+											{
+												"value": "DeltaLoad",
+												"activities": [
+													{
+														"name": "GetMaxWatermarkValue",
+														"description": "Query the source object to get the max value from watermark column",
+														"type": "Lookup",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select max([@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}]) as CurrentMaxWaterMarkColumnValue from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}]",
+																	"type": "Expression"
+																},
+																"partitionOption": "None"
+															},
+															"dataset": {
+																"referenceName": "MetadataDrivenCopyTaskMarketng_jri_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														}
+													},
+													{
+														"name": "DeltaLoadOneObject",
+														"description": "Copy the changed data only from last time via comparing the value in watermark column to identify changes.",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "GetMaxWatermarkValue",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select * from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}] \n    where [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] > @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, \n    concat('''', json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, ''''))}\n    and [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] <= @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTaskMarketng_jri_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTaskMarketng_jri_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													},
+													{
+														"name": "UpdateWatermarkColumnValue",
+														"type": "SqlServerStoredProcedure",
+														"dependsOn": [
+															{
+																"activity": "DeltaLoadOneObject",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"storedProcedureName": "[[dbo].[UpdateWatermarkColumnValue_jri]",
+															"storedProcedureParameters": {
+																"Id": {
+																	"value": {
+																		"value": "@item().Id",
+																		"type": "Expression"
+																	},
+																	"type": "Int32"
+																},
+																"watermarkColumnStartValue": {
+																	"value": {
+																		"value": "@activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																}
+															}
+														},
+														"linkedServiceName": {
+															"referenceName": "lssqldatabase",
+															"type": "LinkedServiceReference"
+														}
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "DefaultFullLoadOneObject",
+												"description": "Take a full snapshot on this object and copy it to the destination",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+													},
+													{
+														"name": "Destination",
+														"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+													}
+												],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+															"type": "Expression"
+														},
+														"partitionOption": {
+															"value": "@json(item().CopySourceSettings).partitionOption",
+															"type": "Expression"
+														},
+														"partitionSettings": {
+															"partitionColumnName": {
+																"value": "@json(item().CopySourceSettings).partitionColumnName",
+																"type": "Expression"
+															},
+															"partitionUpperBound": {
+																"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																"type": "Expression"
+															},
+															"partitionLowerBound": {
+																"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																"type": "Expression"
+															},
+															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+														}
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"preCopyScript": {
+															"value": "@json(item().CopySinkSettings).preCopyScript",
+															"type": "Expression"
+														},
+														"tableOption": {
+															"value": "@json(item().CopySinkSettings).tableOption",
+															"type": "Expression"
+														}
+													},
+													"enableStaging": false,
+													"validateDataConsistency": false,
+													"translator": {
+														"value": "@json(item().CopyActivitySettings).translator",
+														"type": "Expression"
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTaskMarketng_jri_SourceDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SourceObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SourceObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTaskMarketng_jri_DestinationDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SinkObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SinkObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"ObjectsPerGroupToCopy": {
+						"type": "Array"
+					}
+				},
+				"folder": {
+					"name": "MetadataDrivenCopyTaskMarketng_jri_20250722"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MetadataDrivenCopyTask_Customer_ye1_BottomLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will copy objects from one group. The objects belonging to this group will be copied parallelly.",
+				"activities": [
+					{
+						"name": "ListObjectsFromOneGroup",
+						"description": "List objects from one group and iterate each of them to downstream activities",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.ObjectsPerGroupToCopy",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "RouteJobsBasedOnLoadingBehavior",
+									"description": "Check the loading behavior for each object if it requires full load or incremental load. If it is Default or FullLoad case, do full load. If it is DeltaLoad case, do incremental load.",
+									"type": "Switch",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@json(item().DataLoadingBehaviorSettings).dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "FullLoad",
+												"activities": [
+													{
+														"name": "FullLoadOneObject",
+														"description": "Take a full snapshot on this object and copy it to the destination",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_Customer_ye1_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_Customer_ye1_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													}
+												]
+											},
+											{
+												"value": "DeltaLoad",
+												"activities": [
+													{
+														"name": "GetMaxWatermarkValue",
+														"description": "Query the source object to get the max value from watermark column",
+														"type": "Lookup",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select max([@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}]) as CurrentMaxWaterMarkColumnValue from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}]",
+																	"type": "Expression"
+																},
+																"partitionOption": "None"
+															},
+															"dataset": {
+																"referenceName": "MetadataDrivenCopyTask_Customer_ye1_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														}
+													},
+													{
+														"name": "DeltaLoadOneObject",
+														"description": "Copy the changed data only from last time via comparing the value in watermark column to identify changes.",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "GetMaxWatermarkValue",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select * from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}] \n    where [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] > @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, \n    concat('''', json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, ''''))}\n    and [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] <= @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_Customer_ye1_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_Customer_ye1_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													},
+													{
+														"name": "UpdateWatermarkColumnValue",
+														"type": "SqlServerStoredProcedure",
+														"dependsOn": [
+															{
+																"activity": "DeltaLoadOneObject",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"storedProcedureName": "[[dbo].[UpdateWatermarkColumnValue_ye1]",
+															"storedProcedureParameters": {
+																"Id": {
+																	"value": {
+																		"value": "@item().Id",
+																		"type": "Expression"
+																	},
+																	"type": "Int32"
+																},
+																"watermarkColumnStartValue": {
+																	"value": {
+																		"value": "@activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																}
+															}
+														},
+														"linkedServiceName": {
+															"referenceName": "lssqldatabase",
+															"type": "LinkedServiceReference"
+														}
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "DefaultFullLoadOneObject",
+												"description": "Take a full snapshot on this object and copy it to the destination",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+													},
+													{
+														"name": "Destination",
+														"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+													}
+												],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+															"type": "Expression"
+														},
+														"partitionOption": {
+															"value": "@json(item().CopySourceSettings).partitionOption",
+															"type": "Expression"
+														},
+														"partitionSettings": {
+															"partitionColumnName": {
+																"value": "@json(item().CopySourceSettings).partitionColumnName",
+																"type": "Expression"
+															},
+															"partitionUpperBound": {
+																"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																"type": "Expression"
+															},
+															"partitionLowerBound": {
+																"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																"type": "Expression"
+															},
+															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+														}
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"preCopyScript": {
+															"value": "@json(item().CopySinkSettings).preCopyScript",
+															"type": "Expression"
+														},
+														"tableOption": {
+															"value": "@json(item().CopySinkSettings).tableOption",
+															"type": "Expression"
+														}
+													},
+													"enableStaging": false,
+													"validateDataConsistency": false,
+													"translator": {
+														"value": "@json(item().CopyActivitySettings).translator",
+														"type": "Expression"
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTask_Customer_ye1_SourceDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SourceObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SourceObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTask_Customer_ye1_DestinationDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SinkObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SinkObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"ObjectsPerGroupToCopy": {
+						"type": "Array"
+					}
+				},
+				"folder": {
+					"name": "MetadataDrivenCopyTask_Customer_ye1_20250722"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MetadataDrivenCopyTask_mre_BottomLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will copy objects from one group. The objects belonging to this group will be copied parallelly.",
+				"activities": [
+					{
+						"name": "ListObjectsFromOneGroup",
+						"description": "List objects from one group and iterate each of them to downstream activities",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.ObjectsPerGroupToCopy",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "RouteJobsBasedOnLoadingBehavior",
+									"description": "Check the loading behavior for each object if it requires full load or incremental load. If it is Default or FullLoad case, do full load. If it is DeltaLoad case, do incremental load.",
+									"type": "Switch",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@json(item().DataLoadingBehaviorSettings).dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "FullLoad",
+												"activities": [
+													{
+														"name": "FullLoadOneObject",
+														"description": "Take a full snapshot on this object and copy it to the destination",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_mre_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_mre_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													}
+												]
+											},
+											{
+												"value": "DeltaLoad",
+												"activities": [
+													{
+														"name": "GetMaxWatermarkValue",
+														"description": "Query the source object to get the max value from watermark column",
+														"type": "Lookup",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select max([@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}]) as CurrentMaxWaterMarkColumnValue from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}]",
+																	"type": "Expression"
+																},
+																"partitionOption": "None"
+															},
+															"dataset": {
+																"referenceName": "MetadataDrivenCopyTask_mre_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														}
+													},
+													{
+														"name": "DeltaLoadOneObject",
+														"description": "Copy the changed data only from last time via comparing the value in watermark column to identify changes.",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "GetMaxWatermarkValue",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select * from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}] \n    where [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] > @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, \n    concat('''', json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, ''''))}\n    and [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] <= @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_mre_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_mre_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													},
+													{
+														"name": "UpdateWatermarkColumnValue",
+														"type": "SqlServerStoredProcedure",
+														"dependsOn": [
+															{
+																"activity": "DeltaLoadOneObject",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"storedProcedureName": "[[dbo].[UpdateWatermarkColumnValue_mre]",
+															"storedProcedureParameters": {
+																"Id": {
+																	"value": {
+																		"value": "@item().Id",
+																		"type": "Expression"
+																	},
+																	"type": "Int32"
+																},
+																"watermarkColumnStartValue": {
+																	"value": {
+																		"value": "@activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																}
+															}
+														},
+														"linkedServiceName": {
+															"referenceName": "lssqldatabase",
+															"type": "LinkedServiceReference"
+														}
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "DefaultFullLoadOneObject",
+												"description": "Take a full snapshot on this object and copy it to the destination",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+													},
+													{
+														"name": "Destination",
+														"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+													}
+												],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+															"type": "Expression"
+														},
+														"partitionOption": {
+															"value": "@json(item().CopySourceSettings).partitionOption",
+															"type": "Expression"
+														},
+														"partitionSettings": {
+															"partitionColumnName": {
+																"value": "@json(item().CopySourceSettings).partitionColumnName",
+																"type": "Expression"
+															},
+															"partitionUpperBound": {
+																"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																"type": "Expression"
+															},
+															"partitionLowerBound": {
+																"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																"type": "Expression"
+															},
+															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+														}
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"preCopyScript": {
+															"value": "@json(item().CopySinkSettings).preCopyScript",
+															"type": "Expression"
+														},
+														"tableOption": {
+															"value": "@json(item().CopySinkSettings).tableOption",
+															"type": "Expression"
+														}
+													},
+													"enableStaging": false,
+													"validateDataConsistency": false,
+													"translator": {
+														"value": "@json(item().CopyActivitySettings).translator",
+														"type": "Expression"
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTask_mre_SourceDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SourceObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SourceObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTask_mre_DestinationDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SinkObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SinkObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"ObjectsPerGroupToCopy": {
+						"type": "Array"
+					}
+				},
+				"folder": {
+					"name": "MetadataDrivenCopyTask_mre_20250722"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MetadataDrivenCopyTask_sfs_BottomLevel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This pipeline will copy objects from one group. The objects belonging to this group will be copied parallelly.",
+				"activities": [
+					{
+						"name": "ListObjectsFromOneGroup",
+						"description": "List objects from one group and iterate each of them to downstream activities",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.ObjectsPerGroupToCopy",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "RouteJobsBasedOnLoadingBehavior",
+									"description": "Check the loading behavior for each object if it requires full load or incremental load. If it is Default or FullLoad case, do full load. If it is DeltaLoad case, do incremental load.",
+									"type": "Switch",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@json(item().DataLoadingBehaviorSettings).dataLoadingBehavior",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "FullLoad",
+												"activities": [
+													{
+														"name": "FullLoadOneObject",
+														"description": "Take a full snapshot on this object and copy it to the destination",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"writeBehavior": {
+																	"value": "@json(item().CopySinkSettings).writeBehavior",
+																	"type": "Expression"
+																},
+																"sqlWriterUseTableLock": {
+																	"value": "@json(item().CopySinkSettings).sqlWriterUseTableLock",
+																	"type": "Expression"
+																},
+																"upsertSettings": {
+																	"value": "@json(item().CopySinkSettings).upsertSettings",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																},
+																"disableMetricsCollection": {
+																	"value": "@json(item().CopySinkSettings).disableMetricsCollection",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_sfs_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_sfs_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													}
+												]
+											},
+											{
+												"value": "DeltaLoad",
+												"activities": [
+													{
+														"name": "GetMaxWatermarkValue",
+														"description": "Query the source object to get the max value from watermark column",
+														"type": "Lookup",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select max([@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}]) as CurrentMaxWaterMarkColumnValue from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}]",
+																	"type": "Expression"
+																},
+																"partitionOption": "None"
+															},
+															"dataset": {
+																"referenceName": "MetadataDrivenCopyTask_sfs_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														}
+													},
+													{
+														"name": "DeltaLoadOneObject",
+														"description": "Copy the changed data only from last time via comparing the value in watermark column to identify changes.",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "GetMaxWatermarkValue",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [
+															{
+																"name": "Source",
+																"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+															},
+															{
+																"name": "Destination",
+																"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+															}
+														],
+														"typeProperties": {
+															"source": {
+																"type": "AzureSqlSource",
+																"sqlReaderQuery": {
+																	"value": "select * from [@{json(item().SourceObjectSettings).schema}].[@{json(item().SourceObjectSettings).table}] \n    where [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] > @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, \n    concat('''', json(item().DataLoadingBehaviorSettings).watermarkColumnStartValue, ''''))}\n    and [@{json(item().DataLoadingBehaviorSettings).watermarkColumnName}] <= @{if(contains(json(item().DataLoadingBehaviorSettings).watermarkColumnType, 'Int'),\n    activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, \n    concat('''', activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue, ''''))}",
+																	"type": "Expression"
+																},
+																"partitionOption": {
+																	"value": "@json(item().CopySourceSettings).partitionOption",
+																	"type": "Expression"
+																},
+																"partitionSettings": {
+																	"partitionColumnName": {
+																		"value": "@json(item().CopySourceSettings).partitionColumnName",
+																		"type": "Expression"
+																	},
+																	"partitionUpperBound": {
+																		"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																		"type": "Expression"
+																	},
+																	"partitionLowerBound": {
+																		"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																		"type": "Expression"
+																	},
+																	"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+																}
+															},
+															"sink": {
+																"type": "AzureSqlSink",
+																"preCopyScript": {
+																	"value": "@json(item().CopySinkSettings).preCopyScript",
+																	"type": "Expression"
+																},
+																"writeBehavior": {
+																	"value": "@json(item().CopySinkSettings).writeBehavior",
+																	"type": "Expression"
+																},
+																"sqlWriterUseTableLock": {
+																	"value": "@json(item().CopySinkSettings).sqlWriterUseTableLock",
+																	"type": "Expression"
+																},
+																"upsertSettings": {
+																	"value": "@json(item().CopySinkSettings).upsertSettings",
+																	"type": "Expression"
+																},
+																"tableOption": {
+																	"value": "@json(item().CopySinkSettings).tableOption",
+																	"type": "Expression"
+																},
+																"disableMetricsCollection": {
+																	"value": "@json(item().CopySinkSettings).disableMetricsCollection",
+																	"type": "Expression"
+																}
+															},
+															"enableStaging": false,
+															"validateDataConsistency": false,
+															"translator": {
+																"value": "@json(item().CopyActivitySettings).translator",
+																"type": "Expression"
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_sfs_SourceDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SourceObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SourceObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "MetadataDrivenCopyTask_sfs_DestinationDS",
+																"type": "DatasetReference",
+																"parameters": {
+																	"cw_schema": {
+																		"value": "@json(item().SinkObjectSettings).schema",
+																		"type": "Expression"
+																	},
+																	"cw_table": {
+																		"value": "@json(item().SinkObjectSettings).table",
+																		"type": "Expression"
+																	}
+																}
+															}
+														]
+													},
+													{
+														"name": "UpdateWatermarkColumnValue",
+														"type": "SqlServerStoredProcedure",
+														"dependsOn": [
+															{
+																"activity": "DeltaLoadOneObject",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"storedProcedureName": "[[dbo].[UpdateWatermarkColumnValue_sfs]",
+															"storedProcedureParameters": {
+																"Id": {
+																	"value": {
+																		"value": "@item().Id",
+																		"type": "Expression"
+																	},
+																	"type": "Int32"
+																},
+																"watermarkColumnStartValue": {
+																	"value": {
+																		"value": "@activity('GetMaxWatermarkValue').output.firstRow.CurrentMaxWaterMarkColumnValue",
+																		"type": "Expression"
+																	},
+																	"type": "String"
+																}
+															}
+														},
+														"linkedServiceName": {
+															"referenceName": "lssqldatabase",
+															"type": "LinkedServiceReference"
+														}
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "DefaultFullLoadOneObject",
+												"description": "Take a full snapshot on this object and copy it to the destination",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [
+													{
+														"name": "Source",
+														"value": "@{json(item().SourceObjectSettings).schema}.@{json(item().SourceObjectSettings).table}"
+													},
+													{
+														"name": "Destination",
+														"value": "@{json(item().SinkObjectSettings).schema}.@{json(item().SinkObjectSettings).table}"
+													}
+												],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "@json(item().CopySourceSettings).sqlReaderQuery",
+															"type": "Expression"
+														},
+														"partitionOption": {
+															"value": "@json(item().CopySourceSettings).partitionOption",
+															"type": "Expression"
+														},
+														"partitionSettings": {
+															"partitionColumnName": {
+																"value": "@json(item().CopySourceSettings).partitionColumnName",
+																"type": "Expression"
+															},
+															"partitionUpperBound": {
+																"value": "@json(item().CopySourceSettings).partitionUpperBound",
+																"type": "Expression"
+															},
+															"partitionLowerBound": {
+																"value": "@json(item().CopySourceSettings).partitionLowerBound",
+																"type": "Expression"
+															},
+															"partitionNames": "@json(item().CopySourceSettings).partitionNames"
+														}
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"preCopyScript": {
+															"value": "@json(item().CopySinkSettings).preCopyScript",
+															"type": "Expression"
+														},
+														"writeBehavior": {
+															"value": "@json(item().CopySinkSettings).writeBehavior",
+															"type": "Expression"
+														},
+														"sqlWriterUseTableLock": {
+															"value": "@json(item().CopySinkSettings).sqlWriterUseTableLock",
+															"type": "Expression"
+														},
+														"upsertSettings": {
+															"value": "@json(item().CopySinkSettings).upsertSettings",
+															"type": "Expression"
+														},
+														"tableOption": {
+															"value": "@json(item().CopySinkSettings).tableOption",
+															"type": "Expression"
+														},
+														"disableMetricsCollection": {
+															"value": "@json(item().CopySinkSettings).disableMetricsCollection",
+															"type": "Expression"
+														}
+													},
+													"enableStaging": false,
+													"validateDataConsistency": false,
+													"translator": {
+														"value": "@json(item().CopyActivitySettings).translator",
+														"type": "Expression"
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTask_sfs_SourceDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SourceObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SourceObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "MetadataDrivenCopyTask_sfs_DestinationDS",
+														"type": "DatasetReference",
+														"parameters": {
+															"cw_schema": {
+																"value": "@json(item().SinkObjectSettings).schema",
+																"type": "Expression"
+															},
+															"cw_table": {
+																"value": "@json(item().SinkObjectSettings).table",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"ObjectsPerGroupToCopy": {
+						"type": "Array"
+					}
+				},
+				"folder": {
+					"name": "MetadataDrivenCopyTask_sfs_20250720"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Pipeline_Option2_IncrementalCopy')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -777,79 +3090,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pipeline_AdventureWorks')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "GitHub-hosted",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_GitHub",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_bronze",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/pipeline_Incremental_Copy')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -1475,6 +3715,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "Silver"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_saleGold",
+								"type": "DatasetReference"
+							},
+							"name": "SalesGold"
 						}
 					],
 					"sinks": [
@@ -1484,27 +3731,37 @@
 								"type": "DatasetReference"
 							},
 							"name": "Gold"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_adventurefinal",
+								"type": "DatasetReference"
+							},
+							"name": "AdventureWorks"
 						}
 					],
 					"transformations": [
-						{
-							"name": "Filter"
-						},
 						{
 							"name": "DerivedColumn"
 						},
 						{
 							"name": "Select"
+						},
+						{
+							"name": "Aggregate"
+						},
+						{
+							"name": "Join"
+						},
+						{
+							"name": "AlterRow"
 						}
 					],
 					"scriptLines": [
-						"parameters{",
-						"     startTime as string ('2000-01-01T00:00:00Z')",
-						"}",
 						"source(output(",
 						"          SalesOrderID as string,",
 						"          RevisionNumber as string,",
-						"          OrderDate as string,",
+						"          OrderDate as date,",
 						"          DueDate as string,",
 						"          ShipDate as string,",
 						"          Status as string,",
@@ -1524,7 +3781,7 @@
 						"          SubTotal as string,",
 						"          TaxAmt as string,",
 						"          Freight as string,",
-						"          TotalDue as string,",
+						"          TotalDue as integer,",
 						"          Comment as string,",
 						"          rowguid as string,",
 						"          ModifiedDate as string",
@@ -1533,20 +3790,47 @@
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> Silver",
-						"Silver filter(toTimestamp(ModifiedDate) > toTimestamp($startTime)) ~> Filter",
-						"Filter derive(Year = year(toTimestamp(OrderDate)),",
+						"source(output(",
+						"          SalesOrderID as string,",
+						"          OrderDate as string,",
+						"          Year as integer,",
+						"          CustomerID as string,",
+						"          TotalDue as string,",
+						"          ModifiedDate as string,",
+						"          LoadTimeStamp as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> SalesGold",
+						"Silver derive(Year = year(toTimestamp(OrderDate)),",
 						"          LoadTimeStamp = currentTimestamp()) ~> DerivedColumn",
-						"DerivedColumn select(mapColumn(",
-						"          SalesOrderID,",
+						"Aggregate select(mapColumn(",
 						"          OrderDate,",
+						"          SalesOrderID,",
 						"          Year,",
 						"          CustomerID,",
 						"          TotalDue,",
 						"          ModifiedDate,",
-						"          LoadTimeStamp",
+						"          LoadTimeStamp,",
+						"          {Daily Sales Volume}",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> Select",
+						"DerivedColumn aggregate(groupBy(OrderDate,",
+						"          SalesOrderID,",
+						"          CustomerID,",
+						"          TotalDue,",
+						"          Year,",
+						"          LoadTimeStamp,",
+						"          ModifiedDate),",
+						"     {Daily Sales Volume} = sum(TotalDue)) ~> Aggregate",
+						"Silver, SalesGold join(Silver@SalesOrderID == SalesGold@SalesOrderID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> Join",
+						"Join alterRow(insertIf(isNull(SalesGold@SalesOrderID))) ~> AlterRow",
 						"Select sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     deletable:false,",
@@ -1556,282 +3840,26 @@
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> Gold"
-					]
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "dsemployeesorce",
-								"type": "DatasetReference"
-							},
-							"name": "source1"
-						},
-						{
-							"dataset": {
-								"referenceName": "dsdepartmentsource",
-								"type": "DatasetReference"
-							},
-							"name": "source2"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "dsempdepsink",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "join1"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          EmpID as string,",
-						"          Sales as string,",
-						"          Profit as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source1",
-						"source(output(",
-						"          UserID as string,",
-						"          Dept as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source2",
-						"source1, source2 join(EmpID == UserID,",
-						"     joinType:'outer',",
-						"     matchType:'exact',",
-						"     ignoreSpaces: false,",
-						"     broadcast: 'auto')~> join1",
-						"join1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> sink1"
-					]
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dataflow2')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "dsnewyork",
-								"type": "DatasetReference"
-							},
-							"name": "source1"
-						},
-						{
-							"dataset": {
-								"referenceName": "dscalifornia",
-								"type": "DatasetReference"
-							},
-							"name": "source2"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "dsnewyorkcalijson",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "union1"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          Month as string,",
-						"          Sales as string,",
-						"          Profit as string,",
-						"          Location as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source1",
-						"source(output(",
-						"          Month as string,",
-						"          Sales as string,",
-						"          Profit as string,",
-						"          Location as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source2",
-						"source1, source2 union(byName: false)~> union1",
-						"union1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     partitionBy('hash', 1)) ~> sink1"
-					]
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dataflow3')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "dsselect",
-								"type": "DatasetReference"
-							},
-							"name": "source1"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "DSSELECTAVRO",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "select1"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          EmpID as string,",
-						"          Sales as string,",
-						"          Profit as string,",
-						"          Email as string,",
-						"          Address as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source1",
-						"source1 select(mapColumn(",
-						"          NEWEmpID = EmpID,",
-						"          NEWSales = Sales,",
-						"          NEWAddress = Address,",
-						"          NEWProfit = Profit,",
-						"          NEWEmail = Email",
-						"     ),",
-						"     skipDuplicateMapInputs: false,",
-						"     skipDuplicateMapOutputs: false) ~> select1",
-						"select1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> sink1"
-					]
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dataflow4')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "dsderived",
-								"type": "DatasetReference"
-							},
-							"name": "source1"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "dsderivedsink",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "derivedColumn1"
-						},
-						{
-							"name": "select1"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          CusID as string,",
-						"          Sales as string,",
-						"          Profit as string,",
-						"          Address as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source1",
-						"source1 derive(Profit = iif(isNull(Profit),'unknown',Profit),",
-						"          Country = upper(Address),",
-						"          Sales = iif(isNull(Sales), '500',Sales)) ~> derivedColumn1",
-						"derivedColumn1 select(mapColumn(",
-						"          CusID,",
-						"          NEWSALESS = Sales,",
-						"          Profit,",
-						"          Address,",
-						"          Country",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> select1",
-						"select1 sink(allowSchemaDrift: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> Gold",
+						"AlterRow sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
+						"          SalesOrderID as string,",
+						"          OrderDate as string,",
+						"          Year as integer,",
 						"          CustomerID as string,",
-						"          FirstName as string,",
-						"          LastName as string,",
-						"          RegionID as string",
+						"          TotalDue as string,",
+						"          ModifiedDate as string,",
+						"          LoadTimeStamp as timestamp",
 						"     ),",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> sink1"
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> AdventureWorks"
 					]
 				}
 			},
