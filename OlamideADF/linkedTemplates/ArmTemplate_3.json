@@ -13,52 +13,6 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/Exceljolly')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "lsazureadlshv",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Excel",
-				"typeProperties": {
-					"sheetName": "SALES",
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "Sales Apr-Sep 2020.xlsx",
-						"folderPath": "staging/Azure-Data-Factory-datasets.zip/Azure-Data-Factory-by-Example-Second-Edition-main/SampleData/JollyGood",
-						"fileSystem": "projectadf"
-					},
-					"firstRowAsHeader": true
-				},
-				"schema": [
-					{
-						"name": "Period",
-						"type": "String"
-					},
-					{
-						"name": "Product",
-						"type": "String"
-					},
-					{
-						"name": "Unit Price",
-						"type": "String"
-					},
-					{
-						"name": "Currency",
-						"type": "String"
-					},
-					{
-						"name": "Units Sold",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/MetadataDrivenCopyTaskMaketng_hft_ControlDS')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -725,6 +679,28 @@
 						"type": "DOUBLE"
 					}
 				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Parquet4')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lsazureadlshv",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "siilver"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
 			},
 			"dependsOn": []
 		}
