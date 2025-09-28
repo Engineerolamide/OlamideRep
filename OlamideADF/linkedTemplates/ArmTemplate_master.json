@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LSSYNAPSE'"
 		},
+		"lsadls_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'lsadls'"
+		},
 		"lsazureadlshv_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'lsazureadlshv'"
@@ -23,6 +27,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'lssqldatabase'"
 		},
+		"GitHttpServer_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/"
+		},
 		"HttpServer_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://raw.githubusercontent.com/"
@@ -30,6 +38,10 @@
 		"HttpServer1_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "http://reqres.in/api"
+		},
+		"HttpServer2_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/"
 		},
 		"LSRestService_properties_typeProperties_url": {
 			"type": "string",
@@ -79,6 +91,10 @@
 			"type": "string",
 			"defaultValue": "https://reqres.in/api/users?page=1"
 		},
+		"lsadls_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://storagedatalakeengineer.dfs.core.windows.net/"
+		},
 		"lsazureadlshv_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://storagedatalakeengineer.dfs.core.windows.net/"
@@ -125,6 +141,9 @@
 					"LSSYNAPSE_password": {
 						"value": "[parameters('LSSYNAPSE_password')]"
 					},
+					"lsadls_accountKey": {
+						"value": "[parameters('lsadls_accountKey')]"
+					},
 					"lsazureadlshv_accountKey": {
 						"value": "[parameters('lsazureadlshv_accountKey')]"
 					},
@@ -134,11 +153,17 @@
 					"lssqldatabase_password": {
 						"value": "[parameters('lssqldatabase_password')]"
 					},
+					"GitHttpServer_properties_typeProperties_url": {
+						"value": "[parameters('GitHttpServer_properties_typeProperties_url')]"
+					},
 					"HttpServer_properties_typeProperties_url": {
 						"value": "[parameters('HttpServer_properties_typeProperties_url')]"
 					},
 					"HttpServer1_properties_typeProperties_url": {
 						"value": "[parameters('HttpServer1_properties_typeProperties_url')]"
+					},
+					"HttpServer2_properties_typeProperties_url": {
+						"value": "[parameters('HttpServer2_properties_typeProperties_url')]"
 					},
 					"LSRestService_properties_typeProperties_url": {
 						"value": "[parameters('LSRestService_properties_typeProperties_url')]"
@@ -175,6 +200,9 @@
 					},
 					"RestService9_properties_typeProperties_url": {
 						"value": "[parameters('RestService9_properties_typeProperties_url')]"
+					},
+					"lsadls_properties_typeProperties_url": {
+						"value": "[parameters('lsadls_properties_typeProperties_url')]"
 					},
 					"lsazureadlshv_properties_typeProperties_url": {
 						"value": "[parameters('lsazureadlshv_properties_typeProperties_url')]"
@@ -390,6 +418,26 @@
 			},
 			"dependsOn": [
 				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_9')]"
+			]
+		},
+		{
+			"name": "OlamideADF_ArmTemplate_11",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_11.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'OlamideADF_ArmTemplate_10')]"
 			]
 		}
 	]

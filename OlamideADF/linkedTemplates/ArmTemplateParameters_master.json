@@ -8,6 +8,9 @@
 		"LSSYNAPSE_password": {
 			"value": ""
 		},
+		"lsadls_accountKey": {
+			"value": ""
+		},
 		"lsazureadlshv_accountKey": {
 			"value": ""
 		},
@@ -17,11 +20,17 @@
 		"lssqldatabase_password": {
 			"value": ""
 		},
+		"GitHttpServer_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/"
+		},
 		"HttpServer_properties_typeProperties_url": {
 			"value": "https://raw.githubusercontent.com/"
 		},
 		"HttpServer1_properties_typeProperties_url": {
 			"value": "http://reqres.in/api"
+		},
+		"HttpServer2_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/"
 		},
 		"LSRestService_properties_typeProperties_url": {
 			"value": "http://reqres.in/api/users"
@@ -58,6 +67,9 @@
 		},
 		"RestService9_properties_typeProperties_url": {
 			"value": "https://reqres.in/api/users?page=1"
+		},
+		"lsadls_properties_typeProperties_url": {
+			"value": "https://storagedatalakeengineer.dfs.core.windows.net/"
 		},
 		"lsazureadlshv_properties_typeProperties_url": {
 			"value": "https://storagedatalakeengineer.dfs.core.windows.net/"
