@@ -1,0 +1,9 @@
+{
+	"name": "testscd_type2",
+	"properties": {
+		"folder": {
+			"name": "SCD/SDType2"
+		},
+		"annotations": []
+	}
+}

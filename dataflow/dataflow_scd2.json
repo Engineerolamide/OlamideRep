@@ -1,0 +1,102 @@
+{
+	"name": "dataflow_scd2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_blobcsvfile",
+						"type": "DatasetReference"
+					},
+					"name": "sourceblob"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlsource1scd",
+						"type": "DatasetReference"
+					},
+					"name": "sourceSQLDB"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlsource1scd",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSQLDB"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerivedColumnIsCurrent"
+				},
+				{
+					"name": "selectFROMsourcesqldb"
+				},
+				{
+					"name": "lookupToCompare"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          StudId as integer,",
+				"          StuName as string,",
+				"          Location as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> sourceblob",
+				"source(output(",
+				"          SurKey as integer,",
+				"          StudId as integer,",
+				"          StuName as string,",
+				"          Location as string,",
+				"          IsCurrent as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> sourceSQLDB",
+				"sourceblob derive(IsCurrent = 1) ~> DerivedColumnIsCurrent",
+				"sourceSQLDB select(mapColumn(",
+				"          DB_SurKey = SurKey,",
+				"          {DB_ StudId} = StudId,",
+				"          DB_StuName = StuName,",
+				"          DB_Location = Location,",
+				"          DB_IsCurrent = IsCurrent",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectFROMsourcesqldb",
+				"sourceblob, selectFROMsourcesqldb lookup(StudId == {DB_ StudId},",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookupToCompare",
+				"DerivedColumnIsCurrent sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SurKey as integer,",
+				"          StudId as integer,",
+				"          StuName as string,",
+				"          Location as string,",
+				"          IsCurrent as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          StudId,",
+				"          StuName,",
+				"          Location,",
+				"          IsCurrent",
+				"     )) ~> sinkSQLDB"
+			]
+		}
+	}
+}
