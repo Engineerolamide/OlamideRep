@@ -1,0 +1,16 @@
+{
+	"name": "AzureSqlSCD",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lssqldatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "student_info"
+		}
+	}
+}
