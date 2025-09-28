@@ -7237,6 +7237,56 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/testscd_type2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "dataflow_scd2",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow_scd2",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"sourceblob": {},
+									"sourceSQLDB": {},
+									"sinkSQLDB": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "SCD/SDType2"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow_scd2')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AdventureWork_lbj_ControlDS')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -7927,6 +7977,51 @@
 				"typeProperties": {
 					"schema": "dbo",
 					"table": "SalesOrderGold"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/lssqldatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlsource1scd')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "lssqldatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SurKey",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StudId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StuName",
+						"type": "varchar"
+					},
+					{
+						"name": "Location",
+						"type": "varchar"
+					},
+					{
+						"name": "IsCurrent",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "student_info_scd2"
 				}
 			},
 			"dependsOn": [
@@ -10664,7 +10759,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "student.csv",
+						"fileName": "studentscd.csv",
 						"fileSystem": "scd1"
 					},
 					"columnDelimiter": ",",
@@ -13832,6 +13927,114 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_blobcsvfile')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlSCD')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow_scd2')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_blobcsvfile",
+								"type": "DatasetReference"
+							},
+							"name": "sourceblob"
+						},
+						{
+							"dataset": {
+								"referenceName": "AzureSqlsource1scd",
+								"type": "DatasetReference"
+							},
+							"name": "sourceSQLDB"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlsource1scd",
+								"type": "DatasetReference"
+							},
+							"name": "sinkSQLDB"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DerivedColumnIsCurrent"
+						},
+						{
+							"name": "selectFROMsourcesqldb"
+						},
+						{
+							"name": "lookupToCompare"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          StudId as integer,",
+						"          StuName as string,",
+						"          Location as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> sourceblob",
+						"source(output(",
+						"          SurKey as integer,",
+						"          StudId as integer,",
+						"          StuName as string,",
+						"          Location as string,",
+						"          IsCurrent as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> sourceSQLDB",
+						"sourceblob derive(IsCurrent = 1) ~> DerivedColumnIsCurrent",
+						"sourceSQLDB select(mapColumn(",
+						"          DB_SurKey = SurKey,",
+						"          {DB_ StudId} = StudId,",
+						"          DB_StuName = StuName,",
+						"          DB_Location = Location,",
+						"          DB_IsCurrent = IsCurrent",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectFROMsourcesqldb",
+						"sourceblob, selectFROMsourcesqldb lookup(StudId == {DB_ StudId},",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookupToCompare",
+						"DerivedColumnIsCurrent sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SurKey as integer,",
+						"          StudId as integer,",
+						"          StuName as string,",
+						"          Location as string,",
+						"          IsCurrent as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          StudId,",
+						"          StuName,",
+						"          Location,",
+						"          IsCurrent",
+						"     )) ~> sinkSQLDB"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_blobcsvfile')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlsource1scd')]"
 			]
 		},
 		{
