@@ -26,6 +26,14 @@
 						"type": "DatasetReference"
 					},
 					"name": "sinkSQLDB"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable9",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSQLDBFinal",
+					"description": "adding sqldb for final destination"
 				}
 			],
 			"transformations": [
@@ -37,6 +45,20 @@
 				},
 				{
 					"name": "lookupToCompare"
+				},
+				{
+					"name": "FilterColumns",
+					"description": "Filter_remove_unmatched_columns"
+				},
+				{
+					"name": "selectDBColumn"
+				},
+				{
+					"name": "derivedColumnIsCurrent2"
+				},
+				{
+					"name": "AlterRow",
+					"description": "to update if there is any changes in matching rows"
 				}
 			],
 			"scriptLines": [
@@ -73,6 +95,18 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookupToCompare",
+				"lookupToCompare filter(!isNull({DB_ StudId})) ~> FilterColumns",
+				"FilterColumns select(mapColumn(",
+				"          DB_SurKey,",
+				"          {DB_ StudId},",
+				"          DB_StuName,",
+				"          DB_Location,",
+				"          DB_IsCurrent",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectDBColumn",
+				"selectDBColumn derive(DB_IsCurrent = 0) ~> derivedColumnIsCurrent2",
+				"derivedColumnIsCurrent2 alterRow(updateIf(1==1)) ~> AlterRow",
 				"DerivedColumnIsCurrent sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -89,13 +123,40 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          StudId,",
 				"          StuName,",
 				"          Location,",
 				"          IsCurrent",
-				"     )) ~> sinkSQLDB"
+				"     )) ~> sinkSQLDB",
+				"AlterRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SurKey as integer,",
+				"          StudId as integer,",
+				"          StuName as string,",
+				"          Location as string,",
+				"          IsCurrent as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['SurKey'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          SurKey = DB_SurKey,",
+				"          StudId = {DB_ StudId},",
+				"          StuName = DB_StuName,",
+				"          Location = DB_Location,",
+				"          IsCurrent = DB_IsCurrent",
+				"     )) ~> sinkSQLDBFinal"
 			]
 		}
 	}

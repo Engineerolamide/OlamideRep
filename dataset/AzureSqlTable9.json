@@ -1,0 +1,40 @@
+{
+	"name": "AzureSqlTable9",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lssqldatabase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SurKey",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "StudId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "StuName",
+				"type": "varchar"
+			},
+			{
+				"name": "Location",
+				"type": "varchar"
+			},
+			{
+				"name": "IsCurrent",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "student_info_scd2"
+		}
+	}
+}
